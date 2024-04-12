@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-
+import scipy.linalg as scipy
 
 
 def mcol(v):
@@ -130,3 +130,11 @@ if __name__ == '__main__':
 
     print("SB = ", SB)
 
+    s, U = scipy.eigh(SB, SW)
+    W = U[:, ::-1][:, 0:2]
+
+    UW, _, _ = np.linalg.svd(W)
+    U = UW[:, 0:2]
+
+    print("W = ", W)
+    print("U = ", U)
