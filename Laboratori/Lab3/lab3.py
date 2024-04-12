@@ -49,14 +49,6 @@ def plot_scatter(D, L):
     plt.savefig('scatter_%d_%d.pdf' % (0, 1))
     plt.show()
 
-
-def compute_mean(D, L, class_number):
-
-    D_class = D[:, L==class_number]
-
-    mu_c = np.mean(D_class, axis=0)
-    
-    return mu_c
     
 
 
@@ -68,6 +60,7 @@ if __name__ == '__main__':
 
     mu = D.mean(1)  #calcolo la media delle colonne (somma di tutti i vettori colonna / numero di colonne)  
                     #sto facendo la media di ciascuna feature, ottenendo quindi 1 solo vettore colonna
+
     print(mu)
     DC = D - mcol(mu)   #ottengo la matrice centrata, rimuovendo da ciascun sample la media, come se stessi normalizzando
 
@@ -101,37 +94,39 @@ if __name__ == '__main__':
 
     print("autovettori ordinati\n", data)
 
-    print("/---------------------------------/\n")
+    print("/--------------LDA----------------/\n")
 
-    mu_c0 = compute_mean(D, L, 0)
+    D0 = D[:, L==0]
+    D1 = D[:, L==1]
+    D2 = D[:, L==2]
 
-    mu_c1 = compute_mean(D, L, 1)
+    mu0 = D0.mean(1)
+    D0C = D0 - mcol(mu0)
+    SW0 = D0C @ D0C.T
 
-    mu_c2 = compute_mean(D, L, 2)
+    mu1 = D1.mean(1)
+    D1C = D1 - mcol(mu1)
+    SW1 = D1C @ D1C.T
 
-    print("mu_c0 = ", mu_c0)
-    print("mu_c1 = ", mu_c1)
-    print("mu_c2 = ", mu_c2)
+    mu2 = D2.mean(1)
+    D2C = D2 - mcol(mu2)
+    SW2 = D2C @ D2C.T
 
-    vett_mu_class = [mu_c0, mu_c1, mu_c2]
-    sum = 0
+    SW = (1/D.shape[1]) * (SW0 + SW1 + SW2)
 
-    print(vett_mu_class)
-
-    for i in [0, 2]:
-        mu_class = vett_mu_class[i]
-
-        diff_mu = mu_class - mu
-
-        diff_mu_t = diff_mu.T
-
-        sum += np.matmul(diff_mu, diff_mu_t) * 3
-
-    S_B = sum / N
-
-    print("S_B = ", S_B)
-
-    
+    print("SW = ", SW)
 
 
+    mu0 = mcol(mu0)
+    mu1 = mcol(mu1)
+    mu2 = mcol(mu2)
+    mu = mcol(mu)
+
+    SB0 = D0.shape[1] * ((mu0 - mu) @ (mu0 - mu).T)
+    SB1 = D1.shape[1] * ((mu1- mu) @ (mu1 - mu).T)
+    SB2 = D2.shape[1] * ((mu2 - mu) @ (mu2 - mu).T)
+
+    SB = (1/N) * (SB0 + SB1 + SB2)
+
+    print("SB = ", SB)
 
