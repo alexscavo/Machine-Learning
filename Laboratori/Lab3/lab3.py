@@ -130,11 +130,49 @@ if __name__ == '__main__':
 
     print("SB = ", SB)
 
+    '''Generalized eigenvalue problem'''
+
     s, U = scipy.eigh(SB, SW)
-    W = U[:, ::-1][:, 0:2]
+    W1 = U[:, ::-1][:, 0:2]
 
-    UW, _, _ = np.linalg.svd(W)
-    U = UW[:, 0:2]
 
-    print("W = ", W)
-    print("U = ", U)
+    print("W1 = ", W1)
+
+
+    '''Joint diagonalization os SB and SW to solve the eigenvalue problem'''
+
+    U, s, _ = np.linalg.svd(SW)
+
+    P1 = np.dot( np.dot(U, np.diag(1.0/(s**0.5))), U.T)
+
+    SBT = P1 @ SB @ P1.T    #contiene gli autovettori piu' grandi
+
+    print("SBT = ")
+    print(SBT)
+
+    P2, s, _ = np.linalg.svd(SBT)
+
+    P2 = P2[:, 0:2]
+
+    print("P1.T:\n", P1.T, "\nP2:\n", P2)
+
+    W2 = P1.T @ P2
+
+    print("W2:\n", W2)
+
+    solution = np.load('IRIS_LDA_matrix_m2.npy')
+
+    print("soluzione:\n", solution)
+
+    print(np.linalg.svd(np.hstack([W1, solution]))[1])
+
+    print(np.linalg.svd(np.hstack([W2, solution]))[1])
+
+    
+    LDA_DATASET = W1.T @ D
+
+    plot_scatter(LDA_DATASET, L)
+
+    '''Quindi in pratica posso calcolare la matrice della LDA (ovvero W) in uno dei due modi visti, ovvero
+        -   Tramite generalized eigenvalue problem
+        -   Tramite joint diagonalization per risolvere l'eigenvalue problem'''
