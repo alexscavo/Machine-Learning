@@ -216,7 +216,7 @@ if __name__ == '__main__':
     
     LDA_DATASET = W1.T @ D
 
-    #plot_scatter(LDA_DATASET, L)
+    plot_scatter(LDA_DATASET, L)
 
     '''Quindi in pratica posso calcolare la matrice della LDA (ovvero W) in uno dei due modi visti, ovvero
         -   Tramite generalized eigenvalue problem
@@ -269,7 +269,33 @@ if __name__ == '__main__':
     LDA_result = WTR.T @ DVAL   
     LDA_training = WTR.T @ DTR
 
+    print("\nLDA_test =\n", LDA_result)
+    print("\nLDA_training =\n", LDA_training)
+
     plot_hist(LDA_training, LTR)
     plot_hist(LDA_result, LVAL)
 
+    threshold = (DTR[0, LTR == 1].mean() + DTR[0, LTR == 2].mean()) / 2.0
+
+    #print("mu_tr1 = ", mu_tr1)
+    #print("mu_tr2 = ", mu_tr2)
+
+    print("threshold = ", threshold)
+
+    print("DVAL[0] = \n", DVAL[0])
+
+    PVAL = np.zeros(shape=LVAL.shape, dtype=np.int32)
+    PVAL[DVAL[0] >= threshold] = 2
+    PVAL[DVAL[0] < threshold] = 1
+
+    count = 0
+
+    print("LVAL = ", LVAL)
+    print("PVAL = ", PVAL)
+
+    for i in range(PVAL.shape[0]):
+        if(PVAL[i] != LVAL[i]):
+            count = count + 1
+
+    print("count = ", count)
 
