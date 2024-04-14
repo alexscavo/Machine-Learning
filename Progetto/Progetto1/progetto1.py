@@ -45,7 +45,7 @@ def plot_histograms(D, L, featuresOfInterest):
 
         plt.legend()
         plt.tight_layout()
-        plt.savefig('hist_%d.pdf' % (feat))
+        plt.savefig('plots_p1/hist_%d.pdf' % (feat))
     plt.show()
 
 
@@ -70,7 +70,7 @@ def plot_scatter(D, L, featureOfInterest):
 
             plt.legend()
             plt.tight_layout()
-            plt.savefig('scatter_%d_%d.pdf' % (feat1, feat2))
+            plt.savefig('plots_p1/scatter_%d_%d.pdf' % (feat1, feat2))
         plt.show()
 
 
