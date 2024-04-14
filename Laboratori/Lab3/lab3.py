@@ -179,12 +179,14 @@ if __name__ == '__main__':
 
     s, U = scipy.eigh(SB, SW)
     W1 = U[:, ::-1][:, 0:2]
-
+    
+    print("SB + SW = \n", SB+SW)
+    print("C = \n", C)
 
     print("W1 = ", W1)
 
 
-    '''Joint diagonalization os SB and SW to solve the eigenvalue problem'''
+    '''Joint diagonalization of SB and SW to solve the eigenvalue problem'''
 
     U, s, _ = np.linalg.svd(SW)
 
