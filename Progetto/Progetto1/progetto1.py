@@ -18,16 +18,16 @@ if __name__ == '__main__':
     
      
     #feature 1 - feature 2
-    plots.plot_histograms(D, L, [0, 1])
-    plots.plot_scatter(D, L, [0, 1])
+    plots.plot_histograms("plots_p1", D, L, [0, 1])
+    plots.plot_scatter("plots_p1", D, L, [0, 1])
 
     #feature 3 - feature 4
-    plots.plot_histograms(D, L, [2, 3])
-    plots.plot_scatter(D, L, [2, 3])
+    plots.plot_histograms("plots_p1", D, L, [2, 3])
+    plots.plot_scatter("plots_p1", D, L, [2, 3])
 
     #feature 5 - feature 6
-    plots.plot_histograms(D, L, [4, 5])
-    plots.plot_scatter(D, L, [4, 5])
+    plots.plot_histograms("plots_p1", D, L, [4, 5])
+    plots.plot_scatter("plots_p1", D, L, [4, 5])
     
     '''
     mu = D.mean(1).reshape((D.shape[0], 1))

@@ -3,26 +3,27 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 
-def plot_histograms(D, L, featuresOfInterest):
+def plot_histograms(folder, D, L, featuresOfInterest):
     
     D0 = D[:, L == 0]   #separate the samples based on the label value
     D1 = D[:, L == 1]
 
     for feat in featuresOfInterest:
         plt.figure()
-        plt.xlabel('Feature %d' % (feat))
-        plt.hist(D0[feat, :], bins = 10, density = True, alpha = 0.4, label = 'Counterfeit')
-        plt.hist(D1[feat, :], bins = 10, density = True, alpha = 0.4, label = 'Genuine')
+        #plt.xlabel('Feature %d' % (feat))
+        plt.hist(D0[feat, :], bins = 20, density = True, alpha = 0.4, label = 'Counterfeit')
+        plt.hist(D1[feat, :], bins = 20, density = True, alpha = 0.4, label = 'Genuine')
 
         plt.legend()
         plt.tight_layout()
-        plt.savefig('plots_p1/hist_%d.pdf' % (feat))
+        path = f"{folder}/hist_{feat}.pdf"
+        plt.savefig(path)
     plt.show()
 
 
 
 
-def plot_scatter(D, L, featureOfInterest):
+def plot_scatter(folder, D, L, featureOfInterest):
     
     D0 = D[:, L == 0]
     D1 = D[:, L == 1]
@@ -41,5 +42,6 @@ def plot_scatter(D, L, featureOfInterest):
 
             plt.legend()
             plt.tight_layout()
-            plt.savefig('plots_p1/scatter_%d_%d.pdf' % (feat1, feat2))
+            path = f"{folder}/scatter_{feat1}_{feat2}.pdf"
+            plt.savefig(path)
         plt.show()
