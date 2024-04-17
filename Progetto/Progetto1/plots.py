@@ -10,7 +10,7 @@ def plot_histograms(folder, D, L, featuresOfInterest):
 
     for feat in featuresOfInterest:
         plt.figure()
-        plt.xlabel('Direction %d' % (feat))
+        plt.xlabel('Direction %d' % (feat+1))
         plt.hist(D0[feat, :], bins = 40, density = True, alpha = 0.4, label = 'Counterfeit')
         plt.hist(D1[feat, :], bins = 40, density = True, alpha = 0.4, label = 'Genuine')
 

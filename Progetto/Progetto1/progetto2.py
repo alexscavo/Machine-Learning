@@ -60,9 +60,6 @@ if __name__ == '__main__':
 
     print(L)
 
-    #(DTR, LTR), (DVAL, LVAL)  = functions.split_training_test_dataset(D, L)    serve per la classificazione che verra' fatta dopo!
-
-
     #
     #-----PCA-----
     #
@@ -85,3 +82,30 @@ if __name__ == '__main__':
     DP_lda = W_lda.T @ D        # project the dataset applying LDA matrix
 
     plots.plot_histograms("plots_p2/LDA", DP_lda, L, range(1))
+
+
+    #
+    #-----LDA for classification
+    #
+    
+    (DTR, LTR), (DVAL, LVAL)  = functions.split_training_test_dataset(D, L)     # split the dataset into training data and validation data. Same thing for the labels
+
+    DTR_lda = LDA_matrix(DTR, LTR, 1)   # compute the LDA matrix over training data
+
+    DTRP_lda = DTR_lda.T @ DTR      # project dataset samples over the direction found by LDA
+
+    # we're interested in the mean of class true (L==1) being larger than the mean of class false (L==0)
+    if DTRP_lda[0, LTR == 1].mean() < DTRP_lda[0, LTR == 0].mean():     
+        DTR_lda = -DTR_lda
+        DTRP_lda = DTR_lda.T @ DTR
+
+    DVALP_lda = DTR_lda.T @ DVAL     # project validation dataset over trained model
+
+    treshold = (DTRP_lda[0, LTR == 0].mean() + DTRP_lda[0, LTR == 1].mean()) / 2.0
+
+    PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
+    PVAL[DVALP_lda[0] >= treshold] = 1
+    PVAL[DVALP_lda[0] < treshold] = 0
+
+    print('Number of errors:', (PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
+    print('Error rate: %.2f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
