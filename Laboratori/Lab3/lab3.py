@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import scipy.linalg as scipy
+import sklearn.datasets
 
 
 def mcol(v):
@@ -10,6 +11,9 @@ def mcol(v):
 
 def mrow(v):
     return v.reshape((1, v.size))
+
+def load_iris():
+    return sklearn.datasets.load_iris()['data'].T, sklearn.datasets.load_iris()['target']
 
 def load(fname):
     DList = []
@@ -34,6 +38,28 @@ def load(fname):
 
     return np.hstack(DList), np.array(labelsList, dtype=np.int32)
 
+def plot_hist(D, L):
+
+    D1 = D[L==1]
+    D2 = D[L==2]
+
+    hFea = {
+        0: 'Sepal length',
+        1: 'Sepal width',
+        2: 'Petal length',
+        3: 'Petal width'
+        }
+
+
+    plt.figure()
+    plt.hist(D1, bins = 5, density = True, alpha = 0.4, label = 'Versicolor')
+    plt.hist(D2, bins = 5, density = True, alpha = 0.4, label = 'Virginica')
+    
+    plt.legend()
+    plt.tight_layout() # Use with non-default font size to keep axis label inside the figure
+    plt.savefig('hist_%d.pdf' % 5)
+    plt.show()
+
 def plot_scatter(D, L):
     
     D0 = D[:, L==0]
@@ -50,7 +76,26 @@ def plot_scatter(D, L):
     plt.savefig('scatter_%d_%d.pdf' % (0, 1))
     plt.show()
 
+
+def split_training_test_dataset(D, L, seed = 0):    #funzione per splittare il dataset creando un test set e un training set
+
+    nTrain = int(D.shape[1]*2.0/3.0)    #numero di sample usati per il training
     
+    np.random.seed(seed)    #genero seed casuale per le permutazioni
+
+    idx = np.random.permutation(D.shape[1]) #genero vettore di numeri tra 0 e 150 disposti randomicamente
+    idxTrain = idx[0:nTrain]    #seleziono per il training solo i primi nTrain numeri disposti randomicamente
+    idxTest = idx[nTrain:]      #seleziono per il test solo gli ultimi numeri rimasti
+
+    DTR = D[:, idxTrain]    #vado a fare un sampling del dataset D selezionando i sample nelle posizioni corrispondenti a idxTrain, creando cosi' i due set di test e training
+    DVAL = D[:, idxTest]    #stessa cosa ma per il test set
+    
+    LTR = L[idxTrain]   #stessa cosa con ma per le label
+    LVAL = L[idxTest]
+
+    return (DTR, LTR), (DVAL, LVAL)
+
+
 
 
 #------MAIN-----#
@@ -131,11 +176,129 @@ if __name__ == '__main__':
 
     print("SB = ", SB)
 
+    '''Generalized eigenvalue problem'''
+
     s, U = scipy.eigh(SB, SW)
-    W = U[:, ::-1][:, 0:2]
+    W1 = U[:, ::-1][:, 0:2]
+    
+    print("SB + SW = \n", SB+SW)
+    print("C = \n", C)
 
-    UW, _, _ = np.linalg.svd(W)
-    U = UW[:, 0:2]
+    print("W1 = ", W1)
 
-    print("W = ", W)
-    print("U = ", U)
+
+    '''Joint diagonalization of SB and SW to solve the eigenvalue problem'''
+
+    U, s, _ = np.linalg.svd(SW)
+
+    P1 = np.dot( np.dot(U, np.diag(1.0/(s**0.5))), U.T)
+
+    SBT = P1 @ SB @ P1.T    #contiene gli autovettori piu' grandi
+
+    print("SBT = ")
+    print(SBT)
+
+    P2, s, _ = np.linalg.svd(SBT)
+
+    P2 = P2[:, 0:2]
+
+    print("P1.T:\n", P1.T, "\nP2:\n", P2)
+
+    W2 = P1.T @ P2
+
+    print("W2:\n", W2)
+
+    solution = np.load('IRIS_LDA_matrix_m2.npy')
+
+    print("soluzione:\n", solution)
+
+    print(np.linalg.svd(np.hstack([W1, solution]))[1])
+
+    print(np.linalg.svd(np.hstack([W2, solution]))[1])
+
+    
+    LDA_DATASET = W1.T @ D
+
+    plot_scatter(LDA_DATASET, L)
+
+    '''Quindi in pratica posso calcolare la matrice della LDA (ovvero W) in uno dei due modi visti, ovvero
+        -   Tramite generalized eigenvalue problem
+        -   Tramite joint diagonalization per risolvere l'eigenvalue problem'''
+    
+
+    '''---------PCA + LDA-------'''
+
+    DIris, LIris = load_iris()
+    D = DIris[:, LIris != 0]    #contiene i samples delle classi 1 e 2
+    L = LIris[LIris != 0]   #contiene le labels 1 e 2
+
+
+    (DTR, LTR), (DVAL, LVAL) = split_training_test_dataset(D, L)
+
+    DTR1 = DTR[:, LTR == 1]
+    DTR2 = DTR[:, LTR == 2]
+
+    mu_tr1 = DTR1.mean(1)
+    mu_tr2 = DTR2.mean(1)
+    mu_tr = DTR.mean(1)
+
+    DTR1C = DTR1 - mcol(mu_tr1)
+    DTR2C = DTR2 - mcol(mu_tr2)
+
+    SWTR1 = DTR1C @ DTR1C.T
+    SWTR2 = DTR2C @ DTR2C.T
+
+    SWTR = (1/DTR.shape[1]) * (SWTR1 + SWTR2)
+
+    print("SWTR =\n", SWTR)
+
+    mu_tr1 = mcol(mu_tr1)
+    mu_tr2 = mcol(mu_tr2)
+    mu_tr = mcol(mu_tr)
+
+    SBTR1 = DTR1.shape[1] * ((mu_tr1- mu_tr) @ (mu_tr1 - mu_tr).T)
+    SBTR2 = DTR2.shape[1] * ((mu_tr2 - mu_tr) @ (mu_tr2 - mu_tr).T)
+
+    SBTR = (1/N) * (SBTR1 + SBTR2)
+
+    print("SBTR =\n", SBTR)
+
+    s_tr, UTR = scipy.eigh(SBTR, SWTR)
+
+    WTR = UTR[:, ::-1][:, 0]    #modello allenato
+
+    print("WTR =\n", WTR)
+
+    LDA_result = WTR.T @ DVAL   
+    LDA_training = WTR.T @ DTR
+
+    print("\nLDA_test =\n", LDA_result)
+    print("\nLDA_training =\n", LDA_training)
+
+    plot_hist(LDA_training, LTR)
+    plot_hist(LDA_result, LVAL)
+
+    threshold = (DTR[0, LTR == 1].mean() + DTR[0, LTR == 2].mean()) / 2.0
+
+    #print("mu_tr1 = ", mu_tr1)
+    #print("mu_tr2 = ", mu_tr2)
+
+    print("threshold = ", threshold)
+
+    print("DVAL[0] = \n", DVAL[0])
+
+    PVAL = np.zeros(shape=LVAL.shape, dtype=np.int32)
+    PVAL[DVAL[0] >= threshold] = 2
+    PVAL[DVAL[0] < threshold] = 1
+
+    count = 0
+
+    print("LVAL = ", LVAL)
+    print("PVAL = ", PVAL)
+
+    for i in range(PVAL.shape[0]):
+        if(PVAL[i] != LVAL[i]):
+            count = count + 1
+
+    print("count = ", count)
+
