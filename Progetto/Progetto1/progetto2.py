@@ -25,6 +25,9 @@ def PCA_matrix(D, m):
 
 def LDA_matrix(D, L , m):
 
+    Sb = 0
+    Sw = 0
+
     mu_ds = functions.mcol(D.mean(1))   # dataset mean
     
     # Compute Sb and Sw
@@ -50,20 +53,12 @@ def LDA_matrix(D, L , m):
 
 
 
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
 
     # load the data
     D, L = loadData.load('trainData.txt')
+
+    print(L)
 
     #(DTR, LTR), (DVAL, LVAL)  = functions.split_training_test_dataset(D, L)    serve per la classificazione che verra' fatta dopo!
 
@@ -73,11 +68,11 @@ if __name__ == '__main__':
     #
     P_pca = PCA_matrix(D, 6)       # PCA matrix containing eigenvectors in descending order
 
-    DTR_P = P_pca.T @ D    # project data on the new, using P.T since we want descending ordered eigenvectors
+    DP_pca = P_pca.T @ D    # project data on the new, using P.T since we want descending ordered eigenvectors
 
     print("P_pca = \n", P_pca)
 
-    plots.plot_histograms("plots_p2", DTR_P, L, [0, 1, 2, 3, 4, 5])
+    plots.plot_histograms("plots_p2/PCA", DP_pca, L, range(6))
 
 
     #
@@ -86,4 +81,7 @@ if __name__ == '__main__':
     W_lda = LDA_matrix(D, L, 1)     # only 1 dimension since we have just 2 classes and LDA finds C-1 directions
 
     print("W_lda = \n", W_lda)
-    #plots.plot_histograms()
+
+    DP_lda = W_lda.T @ D        # project the dataset applying LDA matrix
+
+    plots.plot_histograms("plots_p2/LDA", DP_lda, L, range(1))
