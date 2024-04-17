@@ -34,12 +34,15 @@ def LDA_matrix(D, L , m):
     for i in numpy.unique(L):   # for each label
 
         Di = D[:, L == i]       # consider only the samples with label = i
-        DiC = Di - mu_ds        # center the data
 
         mu_class = functions.mcol(Di.mean(1))   # compute the class mean
+        DiC = Di - mu_class        # center the data
 
-        Sb += ((mu_class - mu_ds) @ (mu_class - mu_ds).T) * Di.shape[1]
-        Sw += (Di @ Di.T) * (1/D.shape[1])
+        Sb += ((mu_class - mu_ds) @ (mu_class - mu_ds).T) * DiC.shape[1]
+        Sw += (DiC @ DiC.T) 
+
+    Sw = Sw / D.shape[1]
+    Sb = Sb / D.shape[1]
 
     # Solve the generalized eigenvalue problem
 
@@ -49,8 +52,40 @@ def LDA_matrix(D, L , m):
 
     return W
 
+def find_best_treshold(treshold_base, DVALP, LVAL):
 
+    treshold = treshold_base
+    min = 100
 
+    for i in range(120*10**5):
+        treshold += 10**-5
+        PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
+        PVAL[DVALP[0] >= treshold] = 1
+        PVAL[DVALP[0] < treshold] = 0
+
+        perc = (PVAL != LVAL).sum() / float(LVAL.size) *100
+
+        if perc < min:
+            min = perc 
+            best_PVAL = PVAL
+            best_treshold = treshold
+            best_perc = perc
+
+        treshold -= 2*10**-5
+        PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
+        PVAL[DVALP[0] >= treshold] = 1
+        PVAL[DVALP[0] < treshold] = 0
+
+        perc = (PVAL != LVAL).sum() / float(LVAL.size) *100
+
+        if perc < min:
+            min = perc 
+            best_PVAL = PVAL
+            best_treshold = treshold
+            best_perc = perc
+        
+
+    return best_treshold, best_PVAL, best_perc
 
 
 if __name__ == '__main__':
@@ -107,5 +142,19 @@ if __name__ == '__main__':
     PVAL[DVALP_lda[0] >= treshold] = 1
     PVAL[DVALP_lda[0] < treshold] = 0
 
+    print('Treshold: ', treshold)
     print('Number of errors:', (PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
-    print('Error rate: %.2f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
+    print('Error rate: %.3f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
+
+
+    treshold = (DTRP_lda[0, LTR == 0].mean() + DTRP_lda[0, LTR == 1].mean()) / 2.0
+    best_treshold, best_PVAL, best_perc = find_best_treshold(treshold, DVALP_lda, LVAL)
+    print('Best Treshold: ', best_treshold)
+    print('Number of errors:', (best_PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
+    print('Error rate: %.3f%%' % ( (best_PVAL != LVAL).sum() / float(LVAL.size) *100 ))
+  
+
+    #
+    #-----PCA + LDA-----
+    #
+

@@ -1,10 +1,10 @@
 import numpy
 
 def mcol(v):    #transposed vector vertically
-    return v.reshape(v.size, 1)
+    return v.reshape((v.size, 1))
 
 def mrow(v):    #transposed vector horitzonally
-    return v.reshape(1, v.size)
+    return v.reshape((1, v.size))
 
 def split_training_test_dataset(D, L, seed = 0):    #funzione per splittare il dataset creando un test set e un training set
 
