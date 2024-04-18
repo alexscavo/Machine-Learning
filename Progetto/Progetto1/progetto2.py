@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     print("P_pca = \n", P_pca)
 
-    plots.plot_histograms("plots_p2/PCA", DP_pca, L, range(6))
+    #plots.plot_histograms("plots_p2/PCA", DP_pca, L, range(6))
 
 
     #
@@ -116,7 +116,7 @@ if __name__ == '__main__':
 
     DP_lda = W_lda.T @ D        # project the dataset applying LDA matrix
 
-    plots.plot_histograms("plots_p2/LDA", DP_lda, L, range(1))
+    #plots.plot_histograms("plots_p2/LDA", DP_lda, L, range(1))
 
 
     #
@@ -157,26 +157,30 @@ if __name__ == '__main__':
     #
     #-----PCA + LDA-----
     #
-    DTR_pca = PCA_matrix(DTR, 2)
+    
+    for m in range(2, 6):
+        DTR_pca = PCA_matrix(DTR, m)
 
-    DTRP_pca = DTR_pca.T @ DTR    # now I have the reduced dimensionality applied on the training dataset
-    DVALP_pca = DTR_pca.T @ DVAL  # now I have the reduced dimensionality applied on the validation dataset
+        DTRP_pca = DTR_pca.T @ DTR    # now I have the reduced dimensionality applied on the training dataset
+        DVALP_pca = DTR_pca.T @ DVAL  # now I have the reduced dimensionality applied on the validation dataset
 
-    DTR_lda = LDA_matrix(DTRP_pca, LTR, 1)     
-    DTRP_lda = DTR_lda.T @ DTRP_pca   # now I apply LDA on projected training set with PCA
-    # we're interested in the mean of class true (L==1) being larger than the mean of class false (L==0)
-    if DTRP_lda[0, LTR == 1].mean() < DTRP_lda[0, LTR == 0].mean():     
-        DTR_lda = -DTR_lda
-        DTRP_lda = DTR_lda.T @ DTRP_pca
+        DTR_lda = LDA_matrix(DTRP_pca, LTR, 1)     
+        DTRP_lda = DTR_lda.T @ DTRP_pca   # now I apply LDA on projected training set with PCA
+        # we're interested in the mean of class true (L==1) being larger than the mean of class false (L==0)
+        if DTRP_lda[0, LTR == 1].mean() < DTRP_lda[0, LTR == 0].mean():     
+            DTR_lda = -DTR_lda
+            DTRP_lda = DTR_lda.T @ DTRP_pca
 
-    DVALP_lda = DTR_lda.T @ DVALP_pca
+        DVALP_lda = DTR_lda.T @ DVALP_pca
 
-    treshold = (DTRP_lda[0, LTR == 0].mean() + DTRP_lda[0, LTR == 1].mean()) / 2.0
+        treshold = (DTRP_lda[0, LTR == 0].mean() + DTRP_lda[0, LTR == 1].mean()) / 2.0
 
-    PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
-    PVAL[DVALP_lda[0] >= treshold] = 1
-    PVAL[DVALP_lda[0] < treshold] = 0
+        PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
+        PVAL[DVALP_lda[0] >= treshold] = 1
+        PVAL[DVALP_lda[0] < treshold] = 0
 
-    print('Treshold: ', treshold)
-    print('Number of errors:', (PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
-    print('Error rate: %.3f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
+        print('\n m = ', m)
+        print('Treshold: ', treshold)
+        print('Number of errors:', (PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
+        print('Error rate: %.3f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
+        print()
