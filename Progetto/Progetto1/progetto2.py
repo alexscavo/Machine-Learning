@@ -179,7 +179,7 @@ if __name__ == '__main__':
         PVAL[DVALP_lda[0] >= treshold] = 1
         PVAL[DVALP_lda[0] < treshold] = 0
 
-        print('\n m = ', m)
+        print('\nm = ', m)
         print('Treshold: ', treshold)
         print('Number of errors:', (PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
         print('Error rate: %.3f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
