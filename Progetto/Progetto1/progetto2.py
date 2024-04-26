@@ -93,8 +93,6 @@ if __name__ == '__main__':
     # load the data
     D, L = loadData.load('trainData.txt')
 
-    print(L)
-
     #
     #-----PCA-----
     #
