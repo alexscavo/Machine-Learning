@@ -43,8 +43,10 @@ if __name__ == '__main__':
         print(X1D.shape)
         mu_ML, C_ML = compute_Mean_Covariance(X1D)  # compute mean and covariance for each class 
         ll = loglikelihood(X1D, mu_ML, C_ML)
+
+        print("\n------ feature ", i)
         
-        print("ll class 0 feature ", i, " = ", ll)
+        print("ll class 0 = ", ll)
 
         plt.figure()
         plt.plot(X1D.ravel(), numpy.exp(logpdf_GAU_ND_extended(X1D, mu_ML, C_ML)))
@@ -56,8 +58,8 @@ if __name__ == '__main__':
         print(X1D.shape)
         mu_ML, C_ML = compute_Mean_Covariance(X1D)  # compute mean and covariance for each class 
         ll = loglikelihood(X1D, mu_ML, C_ML)
-        print("ll class 0 feature ", i, " = \n")
-        print(ll)
+        print("ll class 1 = ", ll)
+
 
         plots.plots_pdf_GAU("plots_p3", i, X1D, mu_ML, C_ML)
         
