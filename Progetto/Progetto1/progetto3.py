@@ -18,10 +18,10 @@ def logpdf_GAU_ND_extended(X, mu, C):
 
 def compute_Mean_Covariance(D):
 
-    N = float(D.shape[0])
+    N = float(D.shape[1])
     mu = functions.mcol(D.mean(1))
     DC = D - mu
-    C = (1/N) * (DC @ DC.T)
+    C = (DC @ DC.T) / N
 
     return mu, C
 
@@ -42,14 +42,22 @@ if __name__ == '__main__':
         X1D = functions.mrow(numpy.sort(D0[i, :]))
         print(X1D.shape)
         mu_ML, C_ML = compute_Mean_Covariance(X1D)  # compute mean and covariance for each class 
-        print("\nD0 = \n", X1D)
-        print("\nmu = ", mu_ML)
-        #ll = loglikelihood(X1D, mu_ML, C_ML)
-        #print("\n ll class 0 feature ", i, " = \n")
-        #print(ll)
+        ll = loglikelihood(X1D, mu_ML, C_ML)
+        
+        print("ll class 0 feature ", i, " = ", ll)
 
         plt.figure()
         plt.plot(X1D.ravel(), numpy.exp(logpdf_GAU_ND_extended(X1D, mu_ML, C_ML)))
         plt.hist(X1D.ravel(), bins = 50, density = True)
         plt.show()
 
+
+        X1D = functions.mrow(numpy.sort(D1[i, :]))
+        print(X1D.shape)
+        mu_ML, C_ML = compute_Mean_Covariance(X1D)  # compute mean and covariance for each class 
+        ll = loglikelihood(X1D, mu_ML, C_ML)
+        print("ll class 0 feature ", i, " = \n")
+        print(ll)
+
+        plots.plots_pdf_GAU("plots_p3", i, X1D, mu_ML, C_ML)
+        

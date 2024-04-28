@@ -1,6 +1,7 @@
 import numpy
 import matplotlib
 import matplotlib.pyplot as plt
+import progetto3
 
 
 def plot_histograms(folder, D, L, featuresOfInterest):
@@ -45,3 +46,12 @@ def plot_scatter(folder, D, L, featureOfInterest):
             path = f"{folder}/scatter_{feat1}_{feat2}.pdf"
             plt.savefig(path)
         plt.show()
+
+
+def plots_pdf_GAU(folder, i, X1D, mu_ML, C_ML):
+    plt.figure()
+    plt.plot(X1D.ravel(), numpy.exp(progetto3.logpdf_GAU_ND_extended(X1D, mu_ML, C_ML)))
+    plt.hist(X1D.ravel(), bins = 50, density = True)
+    path = f"{folder}/plot_{i}.pdf"
+    plt.savefig(path)
+    plt.show()
