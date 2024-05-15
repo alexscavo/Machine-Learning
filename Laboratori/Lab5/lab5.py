@@ -92,3 +92,5 @@ if __name__ == '__main__':
     print('predicted value: ', predicted_val)
     print('MVG - Errors: \n', predicted_val-LVAL)
     print('MVG - Error rate: ', (predicted_val-LVAL).sum()/float(LVAL.size)*100, '%')
+
+    # ----- NAIVE BAYES -----
