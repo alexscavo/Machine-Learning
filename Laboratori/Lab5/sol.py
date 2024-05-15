@@ -113,5 +113,12 @@ if __name__ == '__main__':
         print()'''
     S_logLikelihood = compute_log_likelihood_Gau(DVAL, hParams_MVG)
     S_logPost = compute_logPosterior(S_logLikelihood, numpy.ones(3)/3.)
+    print ("Max absolute error w.r.t. pre-computed solution - log-posterior matrix")
+    # Predict labels
+    PVAL = S_logPost.argmax(0)
+    print("MVG - Error rate: %.1f%%" % ((PVAL != LVAL).sum() / float(LVAL.size) * 100))    
     
-    print(S_logPost)
+    
+    
+    
+    

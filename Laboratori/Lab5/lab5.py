@@ -85,4 +85,10 @@ if __name__ == '__main__':
 
     SPost = SJoint_prob - marginal_densities   # faccio la sottrazione dato che ho da calcolare il logaritmo di una divisione e ho gia' calcolato il logaritmo degli operandi
 
-    print('\n-----POSTERIOR PROBABILITY-----\n', SPost)
+
+    #print('\n-----POSTERIOR PROBABILITY-----\n', SPost)
+
+    predicted_val = SPost.argmax(0)
+    print('predicted value: ', predicted_val)
+    print('MVG - Errors: \n', predicted_val-LVAL)
+    print('MVG - Error rate: ', (predicted_val-LVAL).sum()/float(LVAL.size)*100, '%')
