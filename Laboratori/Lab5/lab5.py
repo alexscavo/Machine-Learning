@@ -99,7 +99,6 @@ def compute_parameters_tied(D, L):
         means[label] = mu
 
     SW = C_global / D.shape[1]
-    print('SW = ', SW)
 
     for label in labels:
         parameters[label] = (means[label], SW)
