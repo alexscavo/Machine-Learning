@@ -23,6 +23,24 @@ def compute_parameters_MVG(D, L):
 
     return parameters
 
+def compute_parameters_tied(D, L):
+    labels = set(L)
+    parameters = {}
+    means = {}
+    C_global = 0
+    for label in labels:
+        DX = D[:, L == label]
+        mu, C = functions.compute_mean_covariance(DX)
+        C_global += C * DX.shape[1]
+        means[label] = mu
+
+    SW = C_global / D.shape[1]
+
+    for label in labels:
+        parameters[label] = (means[label], SW)
+
+    return parameters
+
 def compute_llr(D, parameters):
     pdf_1 = logpdf_GAU_ND(D, parameters[1][0], parameters[1][1])
     pdf_0 = logpdf_GAU_ND(D, parameters[0][0], parameters[0][1])
@@ -48,25 +66,28 @@ if __name__ == '__main__':
 
     D, L = loadData.load('trainData.txt')      # get the data and labels from the dataset
 
-    (DTR, LTR), (DVAL, LVAL) = functions.split_training_test_dataset(D, L)  # obtain training and validation data
-
-    parameters = compute_parameters_MVG(DTR, LTR)   # compute training parameters with MVG
-
-    llr = compute_llr(DVAL, parameters)
-    #print(llr)
-
-
-    # predictions:
     class_prior_prob = [0.5, 0.5]   # class prior probabilities
     threshold = -numpy.log(class_prior_prob[1]/class_prior_prob[0])     # compute the threshold as -log( P(C == 1)/P(C == 0) )
 
+    (DTR, LTR), (DVAL, LVAL) = functions.split_training_test_dataset(D, L)  # obtain training and validation data
+
+    # ----- MVG -----
+    parameters = compute_parameters_MVG(DTR, LTR)   # compute training parameters with MVG model
+    llr = compute_llr(DVAL, parameters)
+    #print(llr)
+
+    # predictions:
     PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
     print('MVG model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
 
+    # ----- TIED GAUSSIAN -----
+    parameters = compute_parameters_tied(DTR, LTR)  # compute training parameters with tied Gaussian model
+    llr = compute_llr(DVAL, parameters)
+    #print(llr)
 
-
-
-
+    # predictions:
+    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+    print('Tied Gaussian model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
 
 
 
