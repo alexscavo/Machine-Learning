@@ -28,9 +28,11 @@ def compute_mean_covariance(D):
     N = float(D.shape[1])
     mu = mcol(D.mean(1))
     DC = D - mu
-    C = (DC @ D.T) / N
+    C = (DC @ DC.T) / N
 
     return mu, C
+
+
 
 # mi dice quanto e' probabile che ciascun sample di x appartenga alla classe di cui i parametri sono mu e C
 def logpdf_GAU_ND(x, mu, C):
@@ -67,10 +69,28 @@ def compute_parameters_naive_bayes(D, L):
     for label in labels:
         DX = D[:, L== label]
         mu, C = compute_mean_covariance(DX)
-        C = C * numpy.identity(C.shape[0])
-        parameters[label] = mu, C
+        C = C * numpy.identity(C.shape[0])  # tolgo tutti gli elementi che non sono sulla diagonale, moltiplicando la matrice delle cov con la amtrice identita'
+        parameters[label] = (mu, C)
 
     return parameters
+
+def compute_parameters_tied(D, L):
+    labels = set(L)
+    parameters = {}
+    C_global = 0
+    for label in labels:
+        DX = D[:, L == label]
+        mu, C = compute_mean_covariance(DX)
+        parameters[label] = (mu, C * DX.shape[1])
+
+    SW = (parameters[0][1] + parameters[1][1] + parameters[2][1]) * (1/D.shape[1])
+
+    parameters[0] = (parameters[0][0], SW) 
+    parameters[1] = (parameters[1][0], SW)
+    parameters[2] = (parameters[2][0], SW)
+
+    return parameters
+
 
 
 if __name__ == '__main__':
@@ -85,7 +105,7 @@ if __name__ == '__main__':
     # 1 - COMPUTE THE LIKELIHOOD
     S = class_conditional_prob(DVAL, parameters)
 
-    print(S)
+    #print(S)
     # 2 - COMPUTE THE POSTERIOR PROBABILITY
     prior_prob = mcol(numpy.ones(3)/3.)   # ottengo un vettore colonna di 3 elementi contenenti 1/3, che indica la prior probability di ciascuna classe
 
@@ -100,19 +120,32 @@ if __name__ == '__main__':
     #print('\n-----POSTERIOR PROBABILITY-----\n', SPost)
 
     predicted_val = SPost.argmax(0)
-    print('predicted value: ', predicted_val)
+    print('\n\nMVG - predicted value: ', predicted_val)
     print('MVG - Errors: \n', predicted_val-LVAL)
     print('MVG - Error rate: ', (predicted_val-LVAL).sum()/float(LVAL.size)*100, '%')
 
     # ----- NAIVE BAYES -----
     parameters_naive = compute_parameters_naive_bayes(DTR, LTR)
 
-    S = class_conditional_prob(DVAL, parameters)
+    S = class_conditional_prob(DVAL, parameters_naive)
     prior_prob = mcol(numpy.ones(3)/3.)  
     SJoint_prob = S + numpy.log(prior_prob)
     marginal_densities = mrow(scipy.special.logsumexp(SJoint_prob, axis=0))
     SPost = SJoint_prob - marginal_densities   
     predicted_val = SPost.argmax(0)
-    print('predicted value: ', predicted_val)
+    print('\n\nNaive Bayes - predicted value: ', predicted_val)
     print('Naive Bayes - Errors: \n', predicted_val-LVAL)
     print('Naive Bayes - Error rate: ', (predicted_val-LVAL).sum()/float(LVAL.size)*100, '%')
+
+    # ----- TIED GAUSSIAN -----
+    parameters_tied = compute_parameters_tied(DTR, LTR)
+
+    S = class_conditional_prob(DVAL, parameters_tied)
+    prior_prob = mcol(numpy.ones(3)/3.)  
+    SJoint_prob = S + numpy.log(prior_prob)
+    marginal_densities = mrow(scipy.special.logsumexp(SJoint_prob, axis=0))
+    SPost = SJoint_prob - marginal_densities   
+    predicted_val = SPost.argmax(0)
+    print('\n\nTied Gaussian - predicted value: ', predicted_val)
+    print('Tied Gaussian - Errors: \n', predicted_val-LVAL)
+    print('Tied Gaussian - Error rate: ', (predicted_val-LVAL).sum()/float(LVAL.size)*100, '%')
