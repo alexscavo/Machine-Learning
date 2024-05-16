@@ -23,3 +23,11 @@ def split_training_test_dataset(D, L, seed = 0):    #funzione per splittare il d
     LVAL = L[idxTest]
 
     return (DTR, LTR), (DVAL, LVAL)
+
+def compute_mean_covariance(D):
+    N = float(D.shape[1])
+    mu = mcol(D.mean(1))
+    DC = D - mu
+    C = (DC @ DC.T) / N
+
+    return mu, C
