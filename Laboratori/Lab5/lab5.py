@@ -61,6 +61,17 @@ def class_conditional_prob(D, parameters):
 
     return S
 
+def compute_parameters_naive_bayes(D, L):
+    labels = set(L)
+    parameters = {}
+    for label in labels:
+        DX = D[:, L== label]
+        mu, C = compute_mean_covariance(DX)
+        C = C * numpy.identity(C.shape[0])
+        parameters[label] = mu, C
+
+    return parameters
+
 
 if __name__ == '__main__':
 
@@ -94,3 +105,14 @@ if __name__ == '__main__':
     print('MVG - Error rate: ', (predicted_val-LVAL).sum()/float(LVAL.size)*100, '%')
 
     # ----- NAIVE BAYES -----
+    parameters_naive = compute_parameters_naive_bayes(DTR, LTR)
+
+    S = class_conditional_prob(DVAL, parameters)
+    prior_prob = mcol(numpy.ones(3)/3.)  
+    SJoint_prob = S + numpy.log(prior_prob)
+    marginal_densities = mrow(scipy.special.logsumexp(SJoint_prob, axis=0))
+    SPost = SJoint_prob - marginal_densities   
+    predicted_val = SPost.argmax(0)
+    print('predicted value: ', predicted_val)
+    print('Naive Bayes - Errors: \n', predicted_val-LVAL)
+    print('Naive Bayes - Error rate: ', (predicted_val-LVAL).sum()/float(LVAL.size)*100, '%')
