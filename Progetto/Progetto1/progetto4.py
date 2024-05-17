@@ -2,6 +2,7 @@ import numpy
 import scipy
 import functions
 import loadData
+import plots
 
 # it tells me the likelihood that a sample x has class whose parameters are mu and C
 def logpdf_GAU_ND(x, mu, C):
@@ -114,6 +115,7 @@ if __name__ == '__main__':
     llr = compute_llr(DVAL, parameters)
     #print(llr)
 
+
     # predictions
     PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
     print('Naive Bayes Gaussian model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
@@ -127,11 +129,122 @@ if __name__ == '__main__':
 
         C = C_per_class[label]
 
-        print('Covariance matrix - class ', label, ':\n')
+        print('Covariance matrix - class', label, ':')
         
-        functions.print_matrix(C)
+        functions.print_matrix(numpy.round(C, 2))
 
         Corr = C / (functions.mcol(C.diagonal()**0.5) * functions.mrow(C.diagonal()**0.5))
 
-        print('Correlation matrix - class ', label, ':')
-        functions.print_matrix(Corr)
+        print('\nCorrelation matrix - class', label, ':')
+        functions.print_matrix(numpy.round(Corr, 4))
+        
+        print()
+
+
+    # prova plot naive bayes - forse da rimuovere
+    '''parameters = compute_parameters_MVG(DTR, LTR)
+    DVAL0 = DVAL[:, LVAL == 0]
+    DVAL1 = DVAL[:, LVAL == 1]
+
+    for i in range(6):    
+        plots.plots_pdf_GAU("plots_p4", i, 0, functions.mrow(numpy.sort(DVAL0[i, :])), parameters[0][0], parameters[0][1])
+
+    for i in range(6):    
+        plots.plots_pdf_GAU("plots_p4", i, 1, functions.mrow(numpy.sort(DVAL1[i, :])), parameters[1][0], parameters[1][1])'''
+
+    
+    # ----- PROVE SENZA FEATURES 5 E 6 -----
+
+    DTR = DTR[0:5, :]
+    DVAL = DVAL[0:5, :]
+
+    # ----- MVG -----
+    parameters = compute_parameters_MVG(DTR, LTR)   # compute training parameters with MVG model
+    llr = compute_llr(DVAL, parameters)
+    #print(llr)
+
+    # predictions:
+    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+    print('MVG model optimized -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+    # ----- TIED GAUSSIAN -----
+    parameters = compute_parameters_tied(DTR, LTR)  # compute training parameters with tied Gaussian model
+    llr = compute_llr(DVAL, parameters)
+    #print(llr)
+
+    # predictions:
+    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+    print('Tied Gaussian model optimized -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+    # ----- NAIVE BAYES GAUSSIAN -----
+    parameters = compute_parameters_naive_bayes(DTR, LTR)
+    llr = compute_llr(DVAL, parameters)
+    #print(llr)
+
+
+    # predictions
+    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+    print('Naive Bayes Gaussian model optimized -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+    # ----- COVARIANCE MATRIX -----
+    parameters = compute_parameters_MVG(DTR, LTR)   # we consider the MVG model parameters
+    C_per_class = get_covariance_per_class(parameters, LTR)
+
+    print('\n--------COVARIANCE MATRICES--------\n')
+    for label in set(LTR):
+
+        C = C_per_class[label]
+
+        print('Covariance matrix optimized - class', label, ':')
+        
+        functions.print_matrix(numpy.round(C, 2))
+
+        Corr = C / (functions.mcol(C.diagonal()**0.5) * functions.mrow(C.diagonal()**0.5))
+
+        print('\nCorrelation matrix optimized - class', label, ':')
+        functions.print_matrix(numpy.round(Corr, 4))
+        
+        print()
+
+
+    # ----- JUST FEATURES 1 AND 2 CLASSIFICATIONS ----- 
+    DTR = DTR[0:2, :]
+    DVAL = DVAL[0:2, :]
+
+    # ----- MVG -----
+    parameters = compute_parameters_MVG(DTR, LTR)   # compute training parameters with MVG model
+    llr = compute_llr(DVAL, parameters)
+    #print(llr)
+
+    # predictions:
+    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+    print('MVG model features 1-2 -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+    # ----- TIED GAUSSIAN -----
+    parameters = compute_parameters_tied(DTR, LTR)  # compute training parameters with tied Gaussian model
+    llr = compute_llr(DVAL, parameters)
+
+    # predictions:
+    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+    print('Tied Gaussian model features 1-2 -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+    # ----- JUST FEATURES 3 AND 4 CLASSIFICATIONS ----- 
+    DTR = DTR[2:4, :]
+    DVAL = DVAL[2:4, :]
+
+    # ----- MVG -----
+    parameters = compute_parameters_MVG(DTR, LTR)   # compute training parameters with MVG model
+    llr = compute_llr(DVAL, parameters)
+    #print(llr)
+
+    # predictions:
+    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+    print('MVG model features 3-4 -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+    # ----- TIED GAUSSIAN -----
+    parameters = compute_parameters_tied(DTR, LTR)  # compute training parameters with tied Gaussian model
+    llr = compute_llr(DVAL, parameters)
+
+    # predictions:
+    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+    print('Tied Gaussian model features 3-4 -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
