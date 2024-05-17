@@ -41,6 +41,17 @@ def compute_parameters_tied(D, L):
 
     return parameters
 
+def compute_parameters_naive_bayes(D, L):
+    labels = set(L)
+    parameters = {}
+    for label in labels:
+        DX = D[:, L== label]
+        mu, C = functions.compute_mean_covariance(DX)
+        C = C * numpy.identity(C.shape[0])  # remove every off-diagonal element multiplying the covariance matrix with the identity matrix
+        parameters[label] = (mu, C)
+
+    return parameters
+
 def compute_llr(D, parameters):
     pdf_1 = logpdf_GAU_ND(D, parameters[1][0], parameters[1][1])
     pdf_0 = logpdf_GAU_ND(D, parameters[0][0], parameters[0][1])
@@ -61,6 +72,15 @@ def compute_predictions(D, class_prior_prob, llr, threshold):
 
     return PVAL
 
+def get_covariance_per_class(parameters, L):
+
+    labels = set(L)
+    C_per_class = {}
+
+    for label in labels:
+        C_per_class[label] = parameters[label][1]
+
+    return C_per_class
 
 if __name__ == '__main__':
 
@@ -89,5 +109,29 @@ if __name__ == '__main__':
     PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
     print('Tied Gaussian model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
 
+    # ----- NAIVE BAYES GAUSSIAN -----
+    parameters = compute_parameters_naive_bayes(DTR, LTR)
+    llr = compute_llr(DVAL, parameters)
+    #print(llr)
 
+    # predictions
+    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+    print('Naive Bayes Gaussian model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
 
+    # ----- COVARIANCE MATRIX -----
+    parameters = compute_parameters_MVG(DTR, LTR)   # we consider the MVG model parameters
+    C_per_class = get_covariance_per_class(parameters, LTR)
+
+    print('\n--------COVARIANCE MATRICES--------\n')
+    for label in set(LTR):
+
+        C = C_per_class[label]
+
+        print('Covariance matrix - class ', label, ':\n')
+        
+        functions.print_matrix(C)
+
+        Corr = C / (functions.mcol(C.diagonal()**0.5) * functions.mrow(C.diagonal()**0.5))
+
+        print('Correlation matrix - class ', label, ':')
+        functions.print_matrix(Corr)

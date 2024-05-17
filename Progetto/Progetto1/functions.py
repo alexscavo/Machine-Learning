@@ -31,3 +31,10 @@ def compute_mean_covariance(D):
     C = (DC @ DC.T) / N
 
     return mu, C
+
+def print_matrix(M):
+
+    for i in range(M.shape[0]):
+            for j in range(M.shape[1]):
+                print(M[i][j], end =", "),
+            print()
