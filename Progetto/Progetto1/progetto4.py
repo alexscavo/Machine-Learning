@@ -156,7 +156,6 @@ if __name__ == '__main__':
     #
     # ----- PROVE SENZA FEATURES 5 E 6 -----
     #
-
     DTR = DTR[0:5, :]
     DVAL = DVAL[0:5, :]
 
