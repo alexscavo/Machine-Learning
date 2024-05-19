@@ -38,3 +38,18 @@ def print_matrix(M):
             for j in range(M.shape[1]):
                 print(M[i][j], end =", "),
             print()
+
+def PCA_matrix(D, m):
+
+    N = D.shape[1]      # total number of samples
+    mu = D.mean(1)  # dataset mean (columns mean)
+
+    DC = D - mcol(mu)     #centered dataset
+
+    C = float(1/N) * (DC @ DC.T)     # covariance matrix
+
+    U, s, Vh = numpy.linalg.svd(C)      # svd on covariance matrix
+
+    P = U[:, 0:m]
+
+    return P

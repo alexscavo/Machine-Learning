@@ -153,7 +153,9 @@ if __name__ == '__main__':
         plots.plots_pdf_GAU("plots_p4", i, 1, functions.mrow(numpy.sort(DVAL1[i, :])), parameters[1][0], parameters[1][1])'''
 
     
+    #
     # ----- PROVE SENZA FEATURES 5 E 6 -----
+    #
 
     DTR = DTR[0:5, :]
     DVAL = DVAL[0:5, :]
@@ -206,8 +208,9 @@ if __name__ == '__main__':
         
         print()
 
-
+    #
     # ----- JUST FEATURES 1 AND 2 CLASSIFICATIONS ----- 
+    #
     DTR = DTR[0:2, :]
     DVAL = DVAL[0:2, :]
 
@@ -248,3 +251,47 @@ if __name__ == '__main__':
     # predictions:
     PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
     print('Tied Gaussian model features 3-4 -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+    #
+    # ----- PREPROCESSING WITH PCA -----
+    #
+    print('\n----- Preprocessing with PCA -----\n')
+    (DTR, LTR), (DVAL, LVAL) = functions.split_training_test_dataset(D, L)
+
+    for m in range(2, 7):
+        print('m =', m)
+        DTR_pca = functions.PCA_matrix(DTR, m) 
+
+        DTRP_pca = DTR_pca.T @ DTR    # project the data over the new subspace
+        DVALP_pca = DTR_pca.T @ DVAL
+
+        # ----- MVG -----
+        parameters = compute_parameters_MVG(DTRP_pca, LTR)   # compute training parameters with MVG model
+        llr = compute_llr(DVALP_pca, parameters)
+
+        # predictions:
+        PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+        print('PCA + MVG model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+        # ----- TIED GAUSSIAN -----
+        parameters = compute_parameters_tied(DTRP_pca, LTR)  # compute training parameters with tied Gaussian model
+        llr = compute_llr(DVALP_pca, parameters)
+
+        # predictions:
+        PVAL = compute_predictions(DVALP_pca, class_prior_prob, llr, threshold)
+        print('PCA + Tied Gaussian model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+        # ----- NAIVE BAYES GAUSSIAN -----
+        parameters = compute_parameters_naive_bayes(DTRP_pca, LTR)
+        llr = compute_llr(DVALP_pca, parameters)
+        #print(llr)
+
+
+        # predictions
+        PVAL = compute_predictions(DVALP_pca, class_prior_prob, llr, threshold)
+        print('Naive Bayes Gaussian model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+
+
+
+
