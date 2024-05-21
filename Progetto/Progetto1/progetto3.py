@@ -48,10 +48,12 @@ if __name__ == '__main__':
         
         print("ll class 0 = ", ll)
 
-        plt.figure()
+        '''plt.figure()
         plt.plot(X1D.ravel(), numpy.exp(logpdf_GAU_ND_extended(X1D, mu_ML, C_ML)))
         plt.hist(X1D.ravel(), bins = 50, density = True)
-        plt.show()
+        plt.show()'''
+
+        plots.plots_pdf_GAU("plots_p3", i, 0, X1D, mu_ML, C_ML)
 
 
         X1D = functions.mrow(numpy.sort(D1[i, :]))
@@ -61,5 +63,5 @@ if __name__ == '__main__':
         print("ll class 1 = ", ll)
 
 
-        plots.plots_pdf_GAU("plots_p3", i, X1D, mu_ML, C_ML)
+        plots.plots_pdf_GAU("plots_p3", i, 1, X1D, mu_ML, C_ML)
         

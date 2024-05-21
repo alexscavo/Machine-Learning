@@ -23,3 +23,33 @@ def split_training_test_dataset(D, L, seed = 0):    #funzione per splittare il d
     LVAL = L[idxTest]
 
     return (DTR, LTR), (DVAL, LVAL)
+
+def compute_mean_covariance(D):
+    N = float(D.shape[1])
+    mu = mcol(D.mean(1))
+    DC = D - mu
+    C = (DC @ DC.T) / N
+
+    return mu, C
+
+def print_matrix(M):
+
+    for i in range(M.shape[0]):
+            for j in range(M.shape[1]):
+                print(M[i][j], end =", "),
+            print()
+
+def PCA_matrix(D, m):
+
+    N = D.shape[1]      # total number of samples
+    mu = D.mean(1)  # dataset mean (columns mean)
+
+    DC = D - mcol(mu)     #centered dataset
+
+    C = float(1/N) * (DC @ DC.T)     # covariance matrix
+
+    U, s, Vh = numpy.linalg.svd(C)      # svd on covariance matrix
+
+    P = U[:, 0:m]
+
+    return P
