@@ -164,5 +164,92 @@ if __name__ == '__main__':
     print('Purgatorio: %.2f%%' % (compute_accuracy(posterior_prob[:, labels_eval==class_to_index['purgatorio']], labels_eval[labels_eval==class_to_index['purgatorio']])))
     print('Paradiso: %.2f%%' % (compute_accuracy(posterior_prob[:, labels_eval==class_to_index['paradiso']], labels_eval[labels_eval==class_to_index['paradiso']])))
 
-    print('----- Total model accuracy -----\n')
+    print('----- Total model accuracy -----')
+    print('Model accuracy: %.2f%%' % (compute_accuracy(posterior_prob, labels_eval)))
+
+    # ----- BINARY TASK: INFERNO-PURGATORIO -----
+    class_to_index = {'inferno': 0, 'purgatorio': 1}    # serve per il mapping delle parole e con gli indici
+    prior_prob = mcol(numpy.array([1./2, 1./2]))
+
+    tercets_train = {       # dizionario con chiave la classe e come valore la lista di terzine di quella classe
+        'inferno': lInf_train,  
+        'purgatorio': lPur_train,
+    }
+
+    tercets_eval = lInf_evaluation + lPur_evaluation  # l'evaluation lo faccio su tutti gli evaluation set
+
+    sol1_model = sol1_estimate_model(tercets_train, eps = 0.001)
+
+    # predicting the cantica
+    scores = estimate_class_conditional_ll(tercets_eval, sol1_model, class_to_index)    # ottengo la matrice che per ogni ogni terzina indica la probabilità che appartenga alle 3 classi
+
+    # analyze performances
+    posterior_prob = compute_posterior_prob(scores, prior_prob) # calcolo la posterior prob di ciascuna terzina per ciascuna classe
+
+    labelsInf = numpy.zeros(len(lInf_evaluation)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
+    labelsInf[:] = class_to_index['inferno']    # assegno a tutti i valori del vettore la classe equivalente ad 'inferno'
+
+    labelsPur = numpy.zeros(len(lPur_evaluation)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
+    labelsPur[:] = class_to_index['purgatorio']    # assegno a tutti i valori del vettore la classe equivalente ad 'inferno'
+
+    labels_eval = numpy.hstack([labelsInf, labelsPur])    # impilo i 3 vettori di labels
+    print('----- Accuracy Inferno-Purgatorio -----')
+    print('Model accuracy: %.2f%%' % (compute_accuracy(posterior_prob, labels_eval)))
+
+    # ----- BINARY TASK: INFERNO-PARADISO -----
+    class_to_index = {'inferno': 0, 'paradiso': 1}    # serve per il mapping delle parole e con gli indici
+    prior_prob = mcol(numpy.array([1./2, 1./2]))
+
+    tercets_train = {       # dizionario con chiave la classe e come valore la lista di terzine di quella classe
+        'inferno': lInf_train,  
+        'paradiso': lPar_train,
+    }
+
+    tercets_eval = lInf_evaluation + lPar_evaluation  # l'evaluation lo faccio su tutti gli evaluation set
+
+    sol1_model = sol1_estimate_model(tercets_train, eps = 0.001)
+
+    # predicting the cantica
+    scores = estimate_class_conditional_ll(tercets_eval, sol1_model, class_to_index)    # ottengo la matrice che per ogni ogni terzina indica la probabilità che appartenga alle 3 classi
+
+    # analyze performances
+    posterior_prob = compute_posterior_prob(scores, prior_prob) # calcolo la posterior prob di ciascuna terzina per ciascuna classe
+
+    labelsInf = numpy.zeros(len(lInf_evaluation)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
+    labelsInf[:] = class_to_index['inferno']    # assegno a tutti i valori del vettore la classe equivalente ad 'inferno'
+
+    lablesPar = numpy.zeros(len(lPar_evaluation)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
+    lablesPar[:] = class_to_index['paradiso']    # assegno a tutti i valori del vettore la classe equivalente ad 'inferno'
+
+    labels_eval = numpy.hstack([labelsInf, lablesPar])    # impilo i 3 vettori di labels
+    print('----- Accuracy Inferno-Paradiso -----')
+    print('Model accuracy: %.2f%%' % (compute_accuracy(posterior_prob, labels_eval)))
+
+    # ----- BINARY TASK: PURGATORIO-PARADISO -----
+    class_to_index = {'purgatorio': 0, 'paradiso': 1}    # serve per il mapping delle parole e con gli indici
+    prior_prob = mcol(numpy.array([1./2, 1./2]))
+
+    tercets_train = {       # dizionario con chiave la classe e come valore la lista di terzine di quella classe
+        'purgatorio': lPur_train,  
+        'paradiso': lPar_train,
+    }
+
+    tercets_eval = lPur_evaluation + lPar_evaluation  # l'evaluation lo faccio su tutti gli evaluation set
+
+    sol1_model = sol1_estimate_model(tercets_train, eps = 0.001)
+
+    # predicting the cantica
+    scores = estimate_class_conditional_ll(tercets_eval, sol1_model, class_to_index)    # ottengo la matrice che per ogni ogni terzina indica la probabilità che appartenga alle 3 classi
+
+    # analyze performances
+    posterior_prob = compute_posterior_prob(scores, prior_prob) # calcolo la posterior prob di ciascuna terzina per ciascuna classe
+
+    labelsPur = numpy.zeros(len(lPur_evaluation)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
+    labelsPur[:] = class_to_index['purgatorio']    # assegno a tutti i valori del vettore la classe equivalente ad 'inferno'
+
+    labelsPar = numpy.zeros(len(lPar_evaluation)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
+    labelsPar[:] = class_to_index['paradiso']    # assegno a tutti i valori del vettore la classe equivalente ad 'inferno'
+
+    labels_eval = numpy.hstack([labelsPur, labelsPar])    # impilo i 3 vettori di labels
+    print('----- Accuracy Purgatorio-Paradiso -----')
     print('Model accuracy: %.2f%%' % (compute_accuracy(posterior_prob, labels_eval)))
