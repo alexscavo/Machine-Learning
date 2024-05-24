@@ -1,5 +1,6 @@
 import numpy
 import scipy
+import scipy.special
 import load
 
 def mcol(v):
@@ -66,18 +67,18 @@ def sol1_compute_ll(tercet, class_log_prob):
     words = tercet.split()  # parole della terzina
 
     for cls in class_log_prob:  # per ogni classe del 
-        tercet_prob = 0
         for word in words: # per ogni paraola nella terzina
             if word in class_log_prob[cls]: # se la parola è tra le parole del dizionario della classe
-                tercet_prob += class_log_prob[cls][word]    # aggiungo la prob della parola di appartenere alla classe cls
-
-        class_ll[cls] = tercet_prob     # inserisco la probabilità calcolata per la determinata classe
+                class_ll[cls] += class_log_prob[cls][word]    # aggiungo la prob della parola di appartenere alla classe cls
 
     return class_ll
 
 
 
-def estimate_class_conditional_ll(tercets, class_log_prob, class_indeces):   # model contains the words frequencies for each class
+def estimate_class_conditional_ll(tercets, class_log_prob, class_indeces = None):   # model contains the words frequencies for each class
+
+    if class_indeces is None:
+        class_indeces = {cls: index for index in enumerate(sorted(class_log_prob))}
 
     # matrice degli score, righe = classi/cantiche, colonne = sample/terzina
     S = numpy.zeros((len(class_log_prob), len(tercets)))    
@@ -93,21 +94,26 @@ def estimate_class_conditional_ll(tercets, class_log_prob, class_indeces):   # m
     return S
   
 
-def compute_posterior_prob(scores, prior_prob):
+def compute_posterior_prob(scores, prior_prob = None):
+
+    if prior_prob is None:
+        prior_prob = mcol(numpy.log( numpy.ones(scores.shape[0]) / float(scores.shape[0]) ))
 
     joint_prob = scores + prior_prob
-    marginal_densities = mrow(scipy.special.logsumexp(scores, axis=0))
-    return joint_prob - marginal_densities
+    marginal_densities = scipy.special.logsumexp(joint_prob, axis=0)
+    posterior_prob = joint_prob - marginal_densities
+    return numpy.exp(posterior_prob)
 
 
 def compute_accuracy(posterior_prob, labels):
 
-    predicted_labels = posterior_prob.argmax(0)  # faccio la predizione in base alla posterior prob
+    predicted_labels = numpy.argmax(posterior_prob, axis = 0)
+    #predicted_labels = posterior_prob.argmax(0)  # faccio la predizione in base alla posterior prob
     NCorrect = (predicted_labels.ravel() == labels.ravel()).sum()   # numero di predictions corrette
-    accuracy = NCorrect * 100 / float(labels.size) 
+    Ntotal = labels.size
+    accuracy = float(NCorrect * 100) / float(Ntotal) 
 
     return accuracy 
-
 
 if __name__ == '__main__':
 
@@ -120,7 +126,7 @@ if __name__ == '__main__':
     lPar_train, lPar_evaluation = load.split_data(lPar, 4)
 
     # prior probabilities
-    prior_prob = mcol(numpy.ones(3)/.3)
+    prior_prob = numpy.log(mcol(numpy.ones(3)/.3))
 
     # ----- SOLUZIONE 1 -----
 
@@ -132,7 +138,7 @@ if __name__ == '__main__':
         'paradiso': lPar_train
     }
 
-    tercets_eval = lInf_evaluation + lPar_evaluation + lPur_evaluation  # l'evaluation lo faccio su tutti gli evaluation set
+    tercets_eval = lInf_evaluation + lPur_evaluation + lPar_evaluation  # l'evaluation lo faccio su tutti gli evaluation set
 
     sol1_model = sol1_estimate_model(tercets_train, eps = 0.001)
 
@@ -142,17 +148,21 @@ if __name__ == '__main__':
     # analyze performances
     posterior_prob = compute_posterior_prob(scores, prior_prob) # calcolo la posterior prob di ciascuna terzina per ciascuna classe
 
-    labelsInf = numpy.zeros(len(lInf_evaluation.s)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
+    labelsInf = numpy.zeros(len(lInf_evaluation)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
     labelsInf[:] = class_to_index['inferno']    # assegno a tutti i valori del vettore la classe equivalente ad 'inferno'
 
-    labelsPur = numpy.zeros(len(lPur_evaluation.s)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
+    labelsPur = numpy.zeros(len(lPur_evaluation)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
     labelsPur[:] = class_to_index['purgatorio']    # assegno a tutti i valori del vettore la classe equivalente ad 'inferno'
 
-    labelsPar = numpy.zeros(len(lPar_evaluation.s)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
+    labelsPar = numpy.zeros(len(lPar_evaluation)) # inizializzo il vettore perchè non potrei altrimenti assegnarvi valori
     labelsPar[:] = class_to_index['paradiso']    # assegno a tutti i valori del vettore la classe equivalente ad 'inferno'
 
+    labels_eval = numpy.hstack([labelsInf, labelsPur, labelsPar])    # impilo i 3 vettori di labels
 
-    accuracy = compute_accuracy(posterior_prob, )
+    print('----- accuracies for each class: -----\n')
+    print('Inferno: %.2f%%' % (compute_accuracy(posterior_prob[:, labels_eval==class_to_index['inferno']], labels_eval[labels_eval==class_to_index['inferno']])))
+    print('Purgatorio: %.2f%%' % (compute_accuracy(posterior_prob[:, labels_eval==class_to_index['purgatorio']], labels_eval[labels_eval==class_to_index['purgatorio']])))
+    print('Paradiso: %.2f%%' % (compute_accuracy(posterior_prob[:, labels_eval==class_to_index['paradiso']], labels_eval[labels_eval==class_to_index['paradiso']])))
 
-    print('accuracies for each class:\n')
-    print('Inferno: ', )
+    print('----- Total model accuracy -----\n')
+    print('Model accuracy: %.2f%%' % (compute_accuracy(posterior_prob, labels_eval)))
