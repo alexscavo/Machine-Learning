@@ -196,10 +196,19 @@ def compute_optimal_bayes_binary_llr(llr, prior, Cfn, Cfp):
     return numpy.int32(llr > threshold)
 
 
+def compute_bayes_risk(confusion_matrix, prior, Cfn, Cfp):
+    Pfn = conf_matrix[0][1] / (conf_matrix[0][1] + conf_matrix[1][1])   # false negative rate
+    Pfp = conf_matrix[1][0] / (conf_matrix[1][0] + conf_matrix[0][0])   # false positive rate
+    DCFu = (prior*Cfn*Pfn) + (1 - prior)*Cfp*Pfp
 
+    return DCFu
 
+def compute_normalized_DCF(DCF, prior, Cfn, Cfp):
+    bayes_risk_dummy = numpy.min([prior*Cfn, (1-prior)*Cfp])    # bayes risk di un sistema che predice o sempre vero, o sempre falso
 
+    norm_DCF = DCF / bayes_risk_dummy
 
+    return norm_DCF
 
 if __name__ == '__main__':
 
@@ -276,13 +285,23 @@ if __name__ == '__main__':
     print('-'*40)
     print('confusion matrix for the divina commedia dataset:\n', conf_matrix)
 
-    llr_commedia = numpy.load('Lab7\commedia_llr_infpar.npy')
+    llr_commedia = numpy.load('Lab7\commedia_llr_infpar.npy')   # llr che 
     labels_commedia = numpy.load('Lab7\commedia_labels_infpar.npy')
 
-    for prior, Cfn, Cfp in [(0.5, 1, 1), (0.5, 1, 1), (0.8, 1, 1), (0.5, 10, 1), (0.8, 1, 10)]:  #
+    for prior, Cfn, Cfp in [(0.5, 1, 1), (0.8, 1, 1), (0.5, 10, 1), (0.8, 1, 10)]:  # per ciascuna tripletta indica la prior prob, the cost of false negatives and the one of false positives
         print()
         print('Prior:', prior, '- Cfn:', Cfn, '- Cfp:', Cfp)
 
-        predictions_binary = compute_optimal_bayes_binary_llr(llr_commedia, prior, Cfn, Cfp)
+        predictions_binary = compute_optimal_bayes_binary_llr(llr_commedia, prior, Cfn, Cfp)    # predizioni fatte dal classificatore R
         conf_matrix = compute_confusion_matrix(predictions_binary, labels_commedia)
         print(conf_matrix)
+
+        # --- BINARY TASK: EVALUATION ---
+        # in questo modo possiamo valuare il bayes risk, che indica il costo che paghiamo quando effettuiamo le decisioni c* (usando la conf_matrix) per i dati di test
+        # ci permette di confrontare i vari sistemi, ma non ci indica i benefici dell'usare il nostro recognizer rispetto alla optimal bayes decision che si basa solamente sulle prior info
+        bayes_risk = compute_bayes_risk(conf_matrix, prior, Cfn, Cfp)   
+        print('Bayes risk:', round(bayes_risk, 3))
+
+        # possiamo quindi calcolare un detection cost normalizzato, dividendo il bayes risk per il risschio di un ipotetico sistema che non usa i dati di test (dummy system)
+        normalized_bayes = compute_normalized_DCF(bayes_risk, prior, Cfn, Cfp)
+        print('normalized Bayes risk:', round(normalized_bayes, 3)) # notiamo che solo in 2 casi il DCF normalizzato e' sotto l'1, negli altri casi e' dannoso
