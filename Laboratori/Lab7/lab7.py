@@ -85,7 +85,8 @@ def logpdf_GAU_ND(x, mu, C):
 # funzione per calcolare la confusion matrix, partendo dalle predizioni fatte
 def compute_confusion_matrix(P, L):
 
-    conf_mat = numpy.zeros((len(set(L)), len(set(L))), dtype = int)
+    nclasses = L.max() + 1
+    conf_mat = numpy.zeros((nclasses, nclasses), dtype = int)
 
     for i in range(P.shape[0]):    # uso i valori contenuti in P ed L come indici per creare la confusion matrix
 
@@ -197,8 +198,8 @@ def compute_optimal_bayes_binary_llr(llr, prior, Cfn, Cfp):
 
 
 def compute_bayes_risk(confusion_matrix, prior, Cfn, Cfp):
-    Pfn = conf_matrix[0][1] / (conf_matrix[0][1] + conf_matrix[1][1])   # false negative rate
-    Pfp = conf_matrix[1][0] / (conf_matrix[1][0] + conf_matrix[0][0])   # false positive rate
+    Pfn = confusion_matrix[0][1] / (confusion_matrix[0][1] + confusion_matrix[1][1])   # false negative rate
+    Pfp = confusion_matrix[1][0] / (confusion_matrix[1][0] + confusion_matrix[0][0])   # false positive rate
     DCFu = (prior*Cfn*Pfn) + (1 - prior)*Cfp*Pfp
 
     return DCFu
@@ -209,6 +210,35 @@ def compute_normalized_DCF(DCF, prior, Cfn, Cfp):
     norm_DCF = DCF / bayes_risk_dummy
 
     return norm_DCF
+
+
+def compute_minDCF_slow(llr, labels, prior, Cfn, Cfp, returnThreshold=False):
+
+    llr_sorted = llr
+
+    thresholds = numpy.concatenate([numpy.array([-numpy.inf]), llr_sorted, numpy.array([numpy.inf])])
+    DCF_min = None
+    DCF_th = None
+
+    for th in thresholds:
+
+        predicted_labels = numpy.int32(llr > th)
+        conf_matrix = compute_confusion_matrix(predicted_labels, labels)
+        DCF = compute_bayes_risk(conf_matrix, prior, Cfn, Cfp)
+        DCF_normalized = compute_normalized_DCF(DCF, prior, Cfn, Cfp)
+
+        if DCF_min is None or DCF_normalized < DCF_min:
+            DCF_min = DCF_normalized
+            DCF_th = th
+
+    if returnThreshold:
+        return DCF_min, DCF_th
+    
+    return DCF_min
+
+
+
+
 
 if __name__ == '__main__':
 
@@ -302,6 +332,21 @@ if __name__ == '__main__':
         bayes_risk = compute_bayes_risk(conf_matrix, prior, Cfn, Cfp)   
         print('Bayes risk:', round(bayes_risk, 3))
 
-        # possiamo quindi calcolare un detection cost normalizzato, dividendo il bayes risk per il risschio di un ipotetico sistema che non usa i dati di test (dummy system)
+        # possiamo quindi calcolare un detection cost normalizzato, dividendo il bayes risk per il rischio di un ipotetico sistema che non usa i dati di test (dummy system)
         normalized_bayes = compute_normalized_DCF(bayes_risk, prior, Cfn, Cfp)
         print('normalized Bayes risk:', round(normalized_bayes, 3)) # notiamo che solo in 2 casi il DCF normalizzato e' sotto l'1, negli altri casi e' dannoso
+
+
+        # --- MINIMUM DETECTION COST ---
+        # dato che il nostro classificatore non produce in output i log-likelihood ratio, la threshold ottima non e' piu' valida e di conseguenza facciamo fatica a definire i costi dovuti a
+        # una scarsa separazione di classe e quelli dovuti ad una scarsa calibrazione. Questo quindi viene definito come score mis-calibrated.
+        # Possiamo quindi ricalibrare gli score usando un piccolo set di sample con classificati (un validation set, che ci permette di trovare i parametri per migliorare il nostro classificatore)
+        # Alternativamente possiamo calcolare la threshold ottima sul validation set, usandola poi per il test set.
+        # Per fare questo possiamo ad esempio calcolare la DCF normalizzata sul test set usando tutte le possibili thresholds, selezionando poi il valore minimo. In questo modo
+        # troviamo un lower bound per la DCF che il sistema puo' raggiungere
+
+        DCF_min, threshold_min = compute_minDCF_slow(llr_commedia, labels_commedia, prior, Cfn, Cfp, True)
+        print('DCF min:', round(DCF_min, 3), '- Threshold:', round(threshold_min, 3))
+        # possiamo notare come ad esclusione della prima, tutte le altre DCF indichino una perdita dovuta ad una scarsa calibrazione, in particolare per le ultime due applicazioni
+        # che erano quelle con DCF normalizzata > 1. Quindi quello che accade in questi due casi e' che noi otteniamo comunque degli score e che li utilizziamo per fare delle decisioni
+        # ma le decisioni, ma non sapevamo utilizzarli per fare delle predizioni piu' accurate di quanto non avremmo saputo fare con le sole prior info
