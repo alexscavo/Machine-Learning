@@ -189,6 +189,16 @@ def compute_posterior_prob(scores, prior_prob = None):
     posterior_prob = joint_prob - marginal_densities
     return numpy.exp(posterior_prob)
 
+# optimal Bayes decisions for binary tasks with log-likelihood-ratio scores
+def compute_optimal_bayes_binary_llr(llr, prior, Cfn, Cfp):
+    threshold = -numpy.log((prior * Cfn)/((1-prior)*Cfp))   # uso la formula per calcolare la threshold e seleziono poi i llr > threshold
+
+    return numpy.int32(llr > threshold)
+
+
+
+
+
 
 
 if __name__ == '__main__':
@@ -263,5 +273,16 @@ if __name__ == '__main__':
     predicted_labels = numpy.argmax(posterior_prob, axis = 0)
 
     conf_matrix = compute_confusion_matrix(predicted_labels, labels_eval)
+    print('-'*40)
+    print('confusion matrix for the divina commedia dataset:\n', conf_matrix)
 
-    print('\nconfusion matrix for the divina commedia dataset:\n', conf_matrix)
+    llr_commedia = numpy.load('Lab7\commedia_llr_infpar.npy')
+    labels_commedia = numpy.load('Lab7\commedia_labels_infpar.npy')
+
+    for prior, Cfn, Cfp in [(0.5, 1, 1), (0.5, 1, 1), (0.8, 1, 1), (0.5, 10, 1), (0.8, 1, 10)]:  #
+        print()
+        print('Prior:', prior, '- Cfn:', Cfn, '- Cfp:', Cfp)
+
+        predictions_binary = compute_optimal_bayes_binary_llr(llr_commedia, prior, Cfn, Cfp)
+        conf_matrix = compute_confusion_matrix(predictions_binary, labels_commedia)
+        print(conf_matrix)
