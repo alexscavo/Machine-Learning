@@ -1,3 +1,5 @@
+import matplotlib
+import matplotlib.pyplot
 import numpy
 import scipy
 import load
@@ -237,6 +239,49 @@ def compute_minDCF_slow(llr, labels, prior, Cfn, Cfp, returnThreshold=False):
     return DCF_min
 
 
+# funzione che ritorna tutte le possibili combinazioni di Pfp e Pfn per ciascuna threshold (ovvero stiamo calcolando i punti della ROC)
+def compute_Pfn_Pfp(llr, labels):
+    
+    llrSorter = numpy.argsort(llr)
+    llrSorted = llr[llrSorter]  # ordiniamo llr in modo da avere tutti le labels in ordine
+    classLabelSorted = labels[llrSorter] # con lo stesso ordinamento ordiniamo anche le label, in modo che continuino a combaciare con gli score
+
+    Pfp = []
+    Pfn = []
+
+    nTrue = (classLabelSorted == 1).sum()   # quanti appartengono alla classe 1
+    nFalse = (classLabelSorted == 0).sum()  # quanti appartengono alla classe 0
+    nFalseNegative = 0  # nella prima iterazione, llr > th con la th piu' bassa di tutte, quindi sto assegnando tutti alla classe 1. Di conseguenza non sto sbagliando a classificare nessun positivo
+    nFalsePositive = nFalse # tutti quelli della classe 0 sono stati assegnati alla classe 1. = a nFalse dato che siamo assegnando tutti alla classe 1 (inizialmente)
+
+    Pfn.append(nFalseNegative / nTrue)  # FNR
+    Pfp.append(nFalsePositive / nFalse) # FPR
+
+    for index in range(len(llrSorted)):
+        if classLabelSorted[index] == 1:
+            nFalseNegative += 1
+        if classLabelSorted[index] == 0:
+            nFalsePositive -= 1
+
+        Pfp.append(nFalsePositive / nTrue)
+        Pfn.append(nFalseNegative / nFalse)
+
+    llrSorted = numpy.concatenate([-numpy.array([numpy.inf]), llrSorted])   # aggiungo -inf alla fine degli score
+
+    # se alcuni valori degli score fossero uguali, abbiamo delle thresholds ripetute, di conseguenza dobbiamo compattare Pfn e Pfp
+    
+    PfnOut = []
+    PfpOut = []
+    thresholdsOut = []
+    for index in range(len(llrSorted)):
+
+        if index == len(llrSorted) - 1 or llrSorted[index+1] != llrSorted[index]:
+            PfnOut.append(Pfn[index])
+            PfpOut.append(Pfp[index])
+            thresholdsOut.append(llrSorted[index])
+
+    return numpy.array(PfnOut), numpy.array(PfpOut), numpy.array(thresholdsOut)
+ 
 
 
 
@@ -350,3 +395,22 @@ if __name__ == '__main__':
         # possiamo notare come ad esclusione della prima, tutte le altre DCF indichino una perdita dovuta ad una scarsa calibrazione, in particolare per le ultime due applicazioni
         # che erano quelle con DCF normalizzata > 1. Quindi quello che accade in questi due casi e' che noi otteniamo comunque degli score e che li utilizziamo per fare delle decisioni
         # ma le decisioni, ma non sapevamo utilizzarli per fare delle predizioni piu' accurate di quanto non avremmo saputo fare con le sole prior info
+
+    # --- ROC CURVES ---
+    # servono per indicare il trade-off tra i vari tipi di errore. Noi vedremo, dato che e' la piu' usata, quella che mappa true positives vs. false positives. 
+    # Una ROC ideale equivarrebbe ad una funzione gradino, dato che massimizzerei il true positive rate e minimizzerei il false positive rate, mentre una ROC lineare "diagonale"
+    # indicherebbe un random classifier (ovvero dal quale puo' uscire qualsiasi cosa, dato che assegna le label in modo random). 
+    # Ciascun punto della ROC e' (Ptp(t), Pfp(t)), dove Ptp e' il true positive rate, mentre Pfp e' il false positive rate (Ptp = 1 - Pfp). La t invece indica la threshold
+    
+    print('-'*40)
+    Pfn, Pfp, _ = compute_Pfn_Pfp(llr_commedia, labels_commedia)
+    Ptp = 1 - Pfn
+    matplotlib.pyplot.figure(0)
+    matplotlib.pyplot.title('ROC curve: TPR - FPR')
+    matplotlib.pyplot.xlabel('FPR')
+    matplotlib.pyplot.ylabel('TPR')
+    matplotlib.pyplot.plot(Pfp, Ptp)    # vuole prima le x poi le y
+    matplotlib.pyplot.grid()
+    matplotlib.pyplot.show()
+    
+
