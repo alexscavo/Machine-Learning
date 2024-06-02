@@ -145,7 +145,6 @@ def sol1_estimate_model(tercets_train, eps = 0.1):
 
     return words_per_class
 
-
 # calcolo quanto la probabilità di ciasuna classe di essere la classe della terzina passata
 def sol1_compute_ll(tercet, class_log_prob):
 
@@ -161,8 +160,6 @@ def sol1_compute_ll(tercet, class_log_prob):
                 class_ll[cls] += class_log_prob[cls][word]    # aggiungo la prob della parola di appartenere alla classe cls
 
     return class_ll
-
-
 
 def estimate_class_conditional_ll(tercets, class_log_prob, class_indeces = None):   # model contains the words frequencies for each class
 
@@ -198,8 +195,7 @@ def compute_optimal_bayes_binary_llr(llr, prior, Cfn, Cfp):
 
     return numpy.int32(llr > threshold)
 
-
-def compute_bayes_risk(confusion_matrix, prior, Cfn, Cfp):
+def compute_bayes_risk_binary(confusion_matrix, prior, Cfn, Cfp):
     Pfn = confusion_matrix[0][1] / (confusion_matrix[0][1] + confusion_matrix[1][1])   # false negative rate
     Pfp = confusion_matrix[1][0] / (confusion_matrix[1][0] + confusion_matrix[0][0])   # false positive rate
     DCFu = (prior*Cfn*Pfn) + (1 - prior)*Cfp*Pfp
@@ -226,7 +222,7 @@ def compute_minDCF_slow(llr, labels, prior, Cfn, Cfp, returnThreshold=False):
 
         predicted_labels = numpy.int32(llr > th)
         conf_matrix = compute_confusion_matrix(predicted_labels, labels)
-        DCF = compute_bayes_risk(conf_matrix, prior, Cfn, Cfp)
+        DCF = compute_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp)
         DCF_normalized = compute_normalized_DCF(DCF, prior, Cfn, Cfp)
 
         if DCF_min is None or DCF_normalized < DCF_min:
@@ -237,7 +233,6 @@ def compute_minDCF_slow(llr, labels, prior, Cfn, Cfp, returnThreshold=False):
         return DCF_min, DCF_th
     
     return DCF_min
-
 
 # funzione che ritorna tutte le possibili combinazioni di Pfp e Pfn per ciascuna threshold (ovvero stiamo calcolando i punti della ROC)
 def compute_Pfn_Pfp(llr, labels):
@@ -282,9 +277,51 @@ def compute_Pfn_Pfp(llr, labels):
 
     return numpy.array(PfnOut), numpy.array(PfpOut), numpy.array(thresholdsOut)
  
+# copmute the matrix of posteriors from class-conditional log-likelihoods and prior array
+def compute_posteriors(log_class_conditional_ll, prior):
+    joint_prob = log_class_conditional_ll + prior_prob
+    marginal_densities = scipy.special.logsumexp(joint_prob, axis=0)
+    posterior_prob = joint_prob - marginal_densities
+    return numpy.exp(posterior_prob)
+
+#compute optimal Bayes decisions for the matrix of class posteriors
+def compute_optimal_Bayes(posterior, cost_matrix):
+    expected_costs = cost_matrix @ posterior
+    return numpy.argmin(expected_costs, axis = 0)
+
+def compute_empirical_bayes_risk(conf_matrix, prior_prob, cost_matrix, normalize = True):
+
+    error_rates = conf_matrix / mrow(conf_matrix.sum(0))   # faccio la somma degli elementi per una colonna per sapere quante terzine di quella classe ci sono e ottenere l'error rate corrispondente per quelle predizioni
+
+    bayes_error = ((error_rates * cost_matrix).sum(0) * mrow(prior_prob).ravel()).sum()
+
+    if normalize:
+        return bayes_error / numpy.min(cost_matrix @ prior_prob)
+    
+    return bayes_error
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+########################################################
+#                                                      #
+#-------------------------MAIN-------------------------#
+#                                                      #
+########################################################
 if __name__ == '__main__':
 
     D, L = load_iris()      # carico il dataset
@@ -313,6 +350,11 @@ if __name__ == '__main__':
     print('\nconfusion matrix for the tied covariance classifier:\n', conf_mat)
 
 
+
+
+    #
+    # ----- SOLUZIONE 1 -----
+    #
     # carico il dataset
     lInf, lPur, lPar = load.load_data()
 
@@ -323,8 +365,6 @@ if __name__ == '__main__':
 
     # prior probabilities
     prior_prob = numpy.log(mcol(numpy.ones(3)/.3))
-
-    # ----- SOLUZIONE 1 -----
 
     class_to_index = {'inferno': 0, 'purgatorio': 1,  'paradiso': 2}    # serve per il mapping delle parole e con gli indici
 
@@ -374,7 +414,7 @@ if __name__ == '__main__':
         # --- BINARY TASK: EVALUATION ---
         # in questo modo possiamo valuare il bayes risk, che indica il costo che paghiamo quando effettuiamo le decisioni c* (usando la conf_matrix) per i dati di test
         # ci permette di confrontare i vari sistemi, ma non ci indica i benefici dell'usare il nostro recognizer rispetto alla optimal bayes decision che si basa solamente sulle prior info
-        bayes_risk = compute_bayes_risk(conf_matrix, prior, Cfn, Cfp)   
+        bayes_risk = compute_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp)   
         print('Bayes risk:', round(bayes_risk, 3))
 
         # possiamo quindi calcolare un detection cost normalizzato, dividendo il bayes risk per il rischio di un ipotetico sistema che non usa i dati di test (dummy system)
@@ -428,23 +468,38 @@ if __name__ == '__main__':
         predictions = compute_optimal_bayes_binary_llr(llr_commedia, effPrior, 1.0, 1.0)
         conf_matrix = compute_confusion_matrix(predictions, labels_commedia)
 
-        bayes_risk = compute_bayes_risk(conf_matrix, effPrior, 1.0, 1.0)    # DCF
+        bayes_risk = compute_bayes_risk_binary(conf_matrix, effPrior, 1.0, 1.0)    # DCF
         DCF = compute_normalized_DCF(bayes_risk, effPrior, 1.0, 1.0)    # NORMALIZED DCF
         minDCF = compute_minDCF_slow(llr_commedia, labels_commedia, effPrior, 1.0, 1.0)    # MIN DCF
 
         actual_DCF.append(DCF)
         min_DCF.append(minDCF)
 
-    matplotlib.pyplot.plot(effPriorLogOdds, actual_DCF, label='actual DCF eps 0.001', color = 'r')
+    '''matplotlib.pyplot.plot(effPriorLogOdds, actual_DCF, label='actual DCF eps 0.001', color = 'r')
     matplotlib.pyplot.plot(effPriorLogOdds, min_DCF, label='DCF eps 0.001', color = 'b')
     matplotlib.pyplot.ylim([0, 1.1])
     matplotlib.pyplot.legend()
     matplotlib.pyplot.xlabel('prior log-odds')
     matplotlib.pyplot.ylabel('DCF value')
-    #matplotlib.pyplot.show()
+    #matplotlib.pyplot.show()'''
     
     llr_commedia = numpy.load('Lab7\commedia_llr_infpar_eps1.npy')   
     labels_commedia = numpy.load('Lab7\commedia_labels_infpar_eps1.npy')
+
+    print('-'*40)
+    for prior, Cfn, Cfp in [(0.5, 1, 1), (0.8, 1, 1), (0.5, 10, 1), (0.8, 1, 10)]:  # per ciascuna tripletta indica la prior prob, the cost of false negatives and the one of false positives
+        print()
+        print('Prior:', prior, '- Cfn:', Cfn, '- Cfp:', Cfp)
+
+        predictions_binary = compute_optimal_bayes_binary_llr(llr_commedia, prior, Cfn, Cfp)    # predizioni fatte dal classificatore R
+        conf_matrix = compute_confusion_matrix(predictions_binary, labels_commedia)       
+        bayes_risk = compute_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp)   
+        print('Bayes risk:', round(bayes_risk, 3))
+        # possiamo quindi calcolare un detection cost normalizzato, dividendo il bayes risk per il rischio di un ipotetico sistema che non usa i dati di test (dummy system)
+        normalized_bayes = compute_normalized_DCF(bayes_risk, prior, Cfn, Cfp)
+        print('normalized Bayes risk:', round(normalized_bayes, 3)) # notiamo che solo in 2 casi il DCF normalizzato e' sotto l'1, negli altri casi e' dannoso
+        DCF_min, threshold_min = compute_minDCF_slow(llr_commedia, labels_commedia, prior, Cfn, Cfp, True)
+        print('DCF min:', round(DCF_min, 3), '- Threshold:', round(threshold_min, 3))
     
     effPriorLogOdds = numpy.linspace(-3, 3, 21)     # creo una serie di punti equispaziati (21, dato che e' il numero di punti che valutiamo con la DCF)
     effPriors = 1.0 / (1.0 + numpy.exp(-effPriorLogOdds))
@@ -457,18 +512,67 @@ if __name__ == '__main__':
         predictions = compute_optimal_bayes_binary_llr(llr_commedia, effPrior, 1.0, 1.0)
         conf_matrix = compute_confusion_matrix(predictions, labels_commedia)
 
-        bayes_risk = compute_bayes_risk(conf_matrix, effPrior, 1.0, 1.0)    # DCF
+        bayes_risk = compute_bayes_risk_binary(conf_matrix, effPrior, 1.0, 1.0)    # DCF
         DCF = compute_normalized_DCF(bayes_risk, effPrior, 1.0, 1.0)    # NORMALIZED DCF
         minDCF = compute_minDCF_slow(llr_commedia, labels_commedia, effPrior, 1.0, 1.0)    # MIN DCF
 
         actual_DCF.append(DCF)
         min_DCF.append(minDCF)
 
-    matplotlib.pyplot.plot(effPriorLogOdds, actual_DCF, label='actual DCF eps 1.0', color = 'y')
+    '''matplotlib.pyplot.plot(effPriorLogOdds, actual_DCF, label='actual DCF eps 1.0', color = 'y')
     matplotlib.pyplot.plot(effPriorLogOdds, min_DCF, label='DCF eps 1.0', color = 'c')
     matplotlib.pyplot.ylim([0, 1.1])
     matplotlib.pyplot.legend()
     matplotlib.pyplot.xlabel('prior log-odds')
     matplotlib.pyplot.ylabel('DCF value')
     matplotlib.pyplot.show()
+'''
+
+
+
+
+
+    #
+    # --- MULTICLASS EVALUATION ---
+    #
+    print()
+    print('-'*40)
+    print()
+    print('Multiclass task')
+
+    C = numpy.array([[0, 1, 2], [1, 0, 1], [2, 1, 0]])
+    prior_prob = mcol(numpy.log(numpy.array([0.3, 0.4, 0.3])))
+
+    print()
+    print('Eps 0.001')
+    commedia_ll = numpy.load('Lab7\commedia_ll.npy')
+    commedia_labels = numpy.load('Lab7\commedia_labels.npy')
+
+    posterior_probs = compute_posteriors(commedia_ll, prior_prob)
+    commedia_predictions = compute_optimal_Bayes(posterior_probs, C)
+    conf_matrix = compute_confusion_matrix(commedia_predictions, commedia_labels)
+    print('Confusion matrix:')
+    print(conf_matrix)
+    emp_bayes_risk = compute_empirical_bayes_risk(conf_matrix, numpy.exp(prior_prob), C, normalize=False)
+    print('Empirical Bayes risk:', round(emp_bayes_risk, 3))
+    normalized_bayes_risk = compute_empirical_bayes_risk(conf_matrix, numpy.exp(prior_prob), C)
+    print('Normalized empirical Bayes risk:', round(normalized_bayes_risk, 3))
+
+    print()
+    print('Eps 1.0')
+    commedia_ll = numpy.load('Lab7\commedia_ll_eps1.npy')
+    commedia_labels = numpy.load('Lab7\commedia_labels_eps1.npy')
+
+    posterior_probs = compute_posteriors(commedia_ll, prior_prob)
+    commedia_predictions = compute_optimal_Bayes(posterior_probs, C)
+    conf_matrix = compute_confusion_matrix(commedia_predictions, commedia_labels)
+    print('Confusion matrix:')
+    print(conf_matrix)
+    emp_bayes_risk = compute_empirical_bayes_risk(conf_matrix, numpy.exp(prior_prob), C, normalize=False)
+    print('Empirical Bayes risk:', round(emp_bayes_risk, 3))
+    normalized_bayes_risk = compute_empirical_bayes_risk(conf_matrix, numpy.exp(prior_prob), C)
+    print('Normalized empirical Bayes risk:', round(normalized_bayes_risk, 3))
+
+
+
 
