@@ -292,7 +292,7 @@ def compute_optimal_Bayes(posterior, cost_matrix):
 def compute_empirical_bayes_risk(conf_matrix, prior_prob, cost_matrix, normalize = True):
 
     error_rates = conf_matrix / mrow(conf_matrix.sum(0))   # faccio la somma degli elementi per una colonna per sapere quante terzine di quella classe ci sono e ottenere l'error rate corrispondente per quelle predizioni
-
+    
     bayes_error = ((error_rates * cost_matrix).sum(0) * mrow(prior_prob).ravel()).sum()
 
     if normalize:
@@ -543,6 +543,41 @@ if __name__ == '__main__':
     C = numpy.array([[0, 1, 2], [1, 0, 1], [2, 1, 0]])
     prior_prob = mcol(numpy.log(numpy.array([0.3, 0.4, 0.3])))
 
+    print()
+    print('Eps 0.001')
+    commedia_ll = numpy.load('Lab7\commedia_ll.npy')
+    commedia_labels = numpy.load('Lab7\commedia_labels.npy')
+
+    posterior_probs = compute_posteriors(commedia_ll, prior_prob)
+    commedia_predictions = compute_optimal_Bayes(posterior_probs, C)
+    conf_matrix = compute_confusion_matrix(commedia_predictions, commedia_labels)
+    print('Confusion matrix:')
+    print(conf_matrix)
+    emp_bayes_risk = compute_empirical_bayes_risk(conf_matrix, numpy.exp(prior_prob), C, normalize=False)
+    print('Empirical Bayes risk:', round(emp_bayes_risk, 3))
+    normalized_bayes_risk = compute_empirical_bayes_risk(conf_matrix, numpy.exp(prior_prob), C)
+    print('Normalized empirical Bayes risk:', round(normalized_bayes_risk, 3))
+
+    print()
+    print('Eps 1.0')
+    commedia_ll = numpy.load('Lab7\commedia_ll_eps1.npy')
+    commedia_labels = numpy.load('Lab7\commedia_labels_eps1.npy')
+
+    posterior_probs = compute_posteriors(commedia_ll, prior_prob)
+    commedia_predictions = compute_optimal_Bayes(posterior_probs, C)
+    conf_matrix = compute_confusion_matrix(commedia_predictions, commedia_labels)
+    print('Confusion matrix:')
+    print(conf_matrix)
+    emp_bayes_risk = compute_empirical_bayes_risk(conf_matrix, numpy.exp(prior_prob), C, normalize=False)
+    print('Empirical Bayes risk:', round(emp_bayes_risk, 3))
+    normalized_bayes_risk = compute_empirical_bayes_risk(conf_matrix, numpy.exp(prior_prob), C)
+    print('Normalized empirical Bayes risk:', round(normalized_bayes_risk, 3))
+
+
+
+
+    C = numpy.ones((3, 3)) - numpy.eye(3)
+    prior_prob = numpy.log(mcol(numpy.ones(3)/3.0))
     print()
     print('Eps 0.001')
     commedia_ll = numpy.load('Lab7\commedia_ll.npy')
