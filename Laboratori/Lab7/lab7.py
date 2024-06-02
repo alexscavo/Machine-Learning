@@ -194,7 +194,7 @@ def compute_posterior_prob(scores, prior_prob = None):
 
 # optimal Bayes decisions for binary tasks with log-likelihood-ratio scores
 def compute_optimal_bayes_binary_llr(llr, prior, Cfn, Cfp):
-    threshold = -numpy.log((prior * Cfn)/((1-prior)*Cfp))   # uso la formula per calcolare la threshold e seleziono poi i llr > threshold
+    threshold = -numpy.log((prior * Cfn) / ((1-prior)*Cfp))   # uso la formula per calcolare la threshold e seleziono poi i llr > threshold
 
     return numpy.int32(llr > threshold)
 
@@ -360,7 +360,7 @@ if __name__ == '__main__':
     print('-'*40)
     print('confusion matrix for the divina commedia dataset:\n', conf_matrix)
 
-    llr_commedia = numpy.load('Lab7\commedia_llr_infpar.npy')   # llr che 
+    llr_commedia = numpy.load('Lab7\commedia_llr_infpar.npy')   
     labels_commedia = numpy.load('Lab7\commedia_labels_infpar.npy')
 
     for prior, Cfn, Cfp in [(0.5, 1, 1), (0.8, 1, 1), (0.5, 10, 1), (0.8, 1, 10)]:  # per ciascuna tripletta indica la prior prob, the cost of false negatives and the one of false positives
@@ -405,12 +405,70 @@ if __name__ == '__main__':
     print('-'*40)
     Pfn, Pfp, _ = compute_Pfn_Pfp(llr_commedia, labels_commedia)
     Ptp = 1 - Pfn
-    matplotlib.pyplot.figure(0)
+    '''matplotlib.pyplot.figure(0)
     matplotlib.pyplot.title('ROC curve: TPR - FPR')
     matplotlib.pyplot.xlabel('FPR')
     matplotlib.pyplot.ylabel('TPR')
     matplotlib.pyplot.plot(Pfp, Ptp)    # vuole prima le x poi le y
     matplotlib.pyplot.grid()
-    matplotlib.pyplot.show()
+    matplotlib.pyplot.show()'''
     
+
+    # --- BAYES ERROR PLOT ---
+    # tilde_p = function of prior log-odds
+    # tilde_pi = effective prior
+    effPriorLogOdds = numpy.linspace(-3, 3, 21)     # creo una serie di punti equispaziati (21, dato che e' il numero di punti che valutiamo con la DCF)
+    effPriors = 1.0 / (1.0 + numpy.exp(-effPriorLogOdds))
+
+    actual_DCF = []
+    min_DCF = []
+
+    for effPrior in effPriors:
+        # le triplette ora sono (tilde_pi, 1, 1)
+        predictions = compute_optimal_bayes_binary_llr(llr_commedia, effPrior, 1.0, 1.0)
+        conf_matrix = compute_confusion_matrix(predictions, labels_commedia)
+
+        bayes_risk = compute_bayes_risk(conf_matrix, effPrior, 1.0, 1.0)    # DCF
+        DCF = compute_normalized_DCF(bayes_risk, effPrior, 1.0, 1.0)    # NORMALIZED DCF
+        minDCF = compute_minDCF_slow(llr_commedia, labels_commedia, effPrior, 1.0, 1.0)    # MIN DCF
+
+        actual_DCF.append(DCF)
+        min_DCF.append(minDCF)
+
+    matplotlib.pyplot.plot(effPriorLogOdds, actual_DCF, label='actual DCF eps 0.001', color = 'r')
+    matplotlib.pyplot.plot(effPriorLogOdds, min_DCF, label='DCF eps 0.001', color = 'b')
+    matplotlib.pyplot.ylim([0, 1.1])
+    matplotlib.pyplot.legend()
+    matplotlib.pyplot.xlabel('prior log-odds')
+    matplotlib.pyplot.ylabel('DCF value')
+    #matplotlib.pyplot.show()
+    
+    llr_commedia = numpy.load('Lab7\commedia_llr_infpar_eps1.npy')   
+    labels_commedia = numpy.load('Lab7\commedia_labels_infpar_eps1.npy')
+    
+    effPriorLogOdds = numpy.linspace(-3, 3, 21)     # creo una serie di punti equispaziati (21, dato che e' il numero di punti che valutiamo con la DCF)
+    effPriors = 1.0 / (1.0 + numpy.exp(-effPriorLogOdds))
+
+    actual_DCF = []
+    min_DCF = []
+
+    for effPrior in effPriors:
+        # le triplette ora sono (tilde_pi, 1, 1)
+        predictions = compute_optimal_bayes_binary_llr(llr_commedia, effPrior, 1.0, 1.0)
+        conf_matrix = compute_confusion_matrix(predictions, labels_commedia)
+
+        bayes_risk = compute_bayes_risk(conf_matrix, effPrior, 1.0, 1.0)    # DCF
+        DCF = compute_normalized_DCF(bayes_risk, effPrior, 1.0, 1.0)    # NORMALIZED DCF
+        minDCF = compute_minDCF_slow(llr_commedia, labels_commedia, effPrior, 1.0, 1.0)    # MIN DCF
+
+        actual_DCF.append(DCF)
+        min_DCF.append(minDCF)
+
+    matplotlib.pyplot.plot(effPriorLogOdds, actual_DCF, label='actual DCF eps 1.0', color = 'y')
+    matplotlib.pyplot.plot(effPriorLogOdds, min_DCF, label='DCF eps 1.0', color = 'c')
+    matplotlib.pyplot.ylim([0, 1.1])
+    matplotlib.pyplot.legend()
+    matplotlib.pyplot.xlabel('prior log-odds')
+    matplotlib.pyplot.ylabel('DCF value')
+    matplotlib.pyplot.show()
 
