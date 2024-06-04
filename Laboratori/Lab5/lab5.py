@@ -20,9 +20,6 @@ def load_iris_binary():
 
     return D, L
 
-
-
-
 def split_db_2to1(D, L, seed=0):
     nTrain = int(D.shape[1]*2.0/3.0)
     numpy.random.seed(seed)
