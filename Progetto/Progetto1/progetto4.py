@@ -269,7 +269,7 @@ if __name__ == '__main__':
         llr = compute_llr(DVALP_pca, parameters)
 
         # predictions:
-        PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
+        PVAL = compute_predictions(DVALP_pca, class_prior_prob, llr, threshold)
         print('PCA + MVG model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
 
         # ----- TIED GAUSSIAN -----
