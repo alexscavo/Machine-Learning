@@ -433,7 +433,6 @@ if __name__ == '__main__':
 
 
 
-    # BEST PCA: M = 1
     m_values = [6, 4, 6]
 
     DTRP_pcas = []
