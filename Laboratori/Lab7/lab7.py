@@ -279,7 +279,7 @@ def compute_Pfn_Pfp(llr, labels):
  
 # copmute the matrix of posteriors from class-conditional log-likelihoods and prior array
 def compute_posteriors(log_class_conditional_ll, prior):
-    joint_prob = log_class_conditional_ll + prior_prob
+    joint_prob = log_class_conditional_ll + prior
     marginal_densities = scipy.special.logsumexp(joint_prob, axis=0)
     posterior_prob = joint_prob - marginal_densities
     return numpy.exp(posterior_prob)
@@ -454,7 +454,7 @@ if __name__ == '__main__':
     matplotlib.pyplot.show()'''
     
 
-    # --- BAYES ERROR PLOT ---
+    # --- BAYES ERROR PLOT --- 
     # tilde_p = function of prior log-odds
     # tilde_pi = effective prior
     effPriorLogOdds = numpy.linspace(-3, 3, 21)     # creo una serie di punti equispaziati (21, dato che e' il numero di punti che valutiamo con la DCF)
