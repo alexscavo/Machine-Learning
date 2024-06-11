@@ -1,3 +1,4 @@
+import matplotlib.pyplot
 import numpy
 import matplotlib
 import matplotlib.pyplot as plt
@@ -68,4 +69,18 @@ def plots_pdf_GAU(folder, i, c, X1D, mu_ML, C_ML):
     plt.hist(X1D.ravel(), bins = 50, density = True)
     path = f"{folder}/plot_{i}_class{c}.pdf"
     plt.savefig(path)
+    plt.show()
+
+def plot_lab8(min_DCF, act_DCF, _lambda):
+    plt.figure(figsize=(10, 6))
+    
+    plt.xscale('log', base=10)
+    plt.plot(_lambda, min_DCF, label='Minimum DCF', marker='o')
+    plt.plot(_lambda, act_DCF, label='Actual DCF', marker='x')
+    
+    plt.xlabel('λ (Regularization strength)')
+    plt.ylabel('DCF')
+    plt.title('DCF vs λ for Logistic Regression')
+    plt.legend()
+    plt.grid(True)
     plt.show()
