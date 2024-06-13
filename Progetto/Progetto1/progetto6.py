@@ -152,10 +152,19 @@ def compute_actualDCF(llr, labels, prior, Cfn, Cfp, normalize=True):
     return compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp, normalize)
 
 
+def quadratic_feature_expansion(D):
+    num_features, num_samples = D.shape
+    expanded_features = []
 
+    
+    for i in range(num_samples):    # Compute the ourter product and flatten it (vec(x * x^T))
+        x = D[:, i]
+        outer_product = numpy.outer(x, x).reshape(-1, 1)
+        expanded_features.append(numpy.vstack((outer_product, x.reshape(-1, 1))))
 
+    expanded_features = numpy.hstack(expanded_features)   # Concatenate all expanded features as columns
 
-
+    return expanded_features
 
 
 
@@ -226,7 +235,7 @@ if __name__ == '__main__':
 
 
     # --- WEIGHTED TRAINING SET ---
-    print('-'*40)
+    '''print('-'*40)
     print('PRIOR-WEIGHTED MODEL - pT = 0.1')
     min_DCFs = []
     act_DCFs = []
@@ -244,13 +253,38 @@ if __name__ == '__main__':
         min_DCFs.append(DCF_min)
         act_DCFs.append(DCF_act)
 
+    plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)'''
+
+
+
+    # --- QUADRATIC LOGISTIC REGRESSION MODEL ---
+    print('-'*40)
+    print('QUADRATIC LOGISTIC REGRESSION MODEL')
+
+    # Expand the training and validation features
+    DTR_expanded = quadratic_feature_expansion(DTR)
+    DVAL_expanded = quadratic_feature_expansion(DVAL)
+
+    lambda_values = numpy.logspace(-4, 2, 13)
+    print('lambda_values:', lambda_values)
+    print('-'*40)
+    min_DCFs = []
+    act_DCFs = []
+    pT = 0.1
+    
+    for _lambda in lambda_values:
+        w, b = trainLogReg(DTR_expanded, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVAL_expanded + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        DCF_act = compute_actualDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCFs.append(DCF_min)
+        act_DCFs.append(DCF_act)
+        print('minDCF - pT = 0.1:', round(DCF_min,4))
+        print('actDCF - pT = 0.1:', round(DCF_act,4))
+        print()
+
     plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
-
-
-
-
-
-
-
-
 
