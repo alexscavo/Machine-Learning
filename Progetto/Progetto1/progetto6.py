@@ -33,6 +33,29 @@ def trainLogReg(DTR, LTR, l):
     print('Log-reg - lambda =', l, ' -J(w, b) =', logreg_obj(vf)[0])
     return vf[:-1], vf[-1]  # ritorno w e b
 
+def trainLogRegNonRegularized(DTR, LTR, l):
+
+    ZTR = LTR * 2.0 - 1     # sarebbe la z che moltiplica s nella sommatoria
+
+    def logreg_obj(v):  # contiene i parametri per la logistic regression ==> v = [w, b]
+
+        w, b = v[0: -1], v[-1]  # spacchetto i parametri    
+        s = (functions.mcol(w).T @ DTR).ravel() + b     # s (separation surface) - ravel serve a ottenere il vettore monodimensionale
+
+        loss = numpy.logaddexp(0, -ZTR * s)      # log (1 + e^-z*s) = log (e^0 - e^-z*s) = logsumexp(0, -z*s)
+
+        G = -ZTR / (1.0 + numpy.exp(ZTR * s))
+        GW = (functions.mrow(G) * DTR).mean(1) + l * w.ravel()
+        Gb = G.mean()
+
+        objective_function = loss.mean()
+
+        return objective_function, numpy.hstack([GW, numpy.array(Gb)])
+
+    vf = scipy.optimize.fmin_l_bfgs_b(func = logreg_obj, x0 = numpy.zeros(DTR.shape[0]+1))[0] # cerco il minimo della funzione obbiettivo
+    print('Log-reg - lambda =', l, ' -J(w, b) =', logreg_obj(vf)[0])
+    return vf[:-1], vf[-1]  # ritorno w e b
+
 
 def trainWeightedLoReg(DTR, LTR, l, pT):
 
@@ -180,13 +203,11 @@ if __name__ == '__main__':
     (DTR, LTR), (DVAL, LVAL) = functions.split_training_test_dataset(D, L)
 
     lambda_values = numpy.logspace(-4, 2, 13)
-    print('lambda_values:', lambda_values)
-    print('-'*40)
     min_DCFs = []
     act_DCFs = []
     pT = 0.1
     
-    '''for _lambda in lambda_values:
+    for _lambda in lambda_values:
         w, b = trainLogReg(DTR, LTR, _lambda)   # calcolo i parametri del modello, w e b
         Sval = w.T @ DVAL + b       
 
@@ -202,7 +223,7 @@ if __name__ == '__main__':
         
 
 
-    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    '''#plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
 
     # --- REDUCED TRAINING SET ---
     print('-'*40)
@@ -286,5 +307,56 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act,4))
         print()
 
+    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+
+    # --- CENTERING THE DATA ---
+    print('-'*40)
+    print('CENTERED DATA LOGISTIC REGRESSION')
+    mean, _ = functions.compute_mean_covariance(DTR)
+    DTR_centered = DTR - mean
+    DVAL_centered = DVAL - mean
+
+    lambda_values = numpy.logspace(-4, 2, 13)
+    min_DCFs = []
+    act_DCFs = []
+    pT = 0.1
+    
+    for _lambda in lambda_values:
+        w, b = trainLogReg(DTR_centered, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVAL_centered + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        DCF_act = compute_actualDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCFs.append(DCF_min)
+        act_DCFs.append(DCF_act)
+        print('minDCF - pT = 0.1:', round(DCF_min,4))
+        print('actDCF - pT = 0.1:', round(DCF_act,4))
+        print()
+
     plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+
+    min_DCFs = []
+    act_DCFs = []
+    pT = 0.1
+    print('-'*40)
+    print('NON REGULARIZED CENTERED LOG REG')
+    for _lambda in lambda_values:
+        w, b = trainLogRegNonRegularized(DTR_centered, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVAL_centered + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        DCF_act = compute_actualDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCFs.append(DCF_min)
+        act_DCFs.append(DCF_act)
+        print('minDCF - pT = 0.1:', round(DCF_min,4))
+        print('actDCF - pT = 0.1:', round(DCF_act,4))
+        print()
+
+    plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+
+
 
