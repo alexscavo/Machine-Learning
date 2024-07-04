@@ -84,3 +84,17 @@ def plot_lab8(min_DCF, act_DCF, _lambda):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+def plot_lab9(title, min_DCF, act_DCF, _lambda):
+    plt.figure(figsize=(10, 6))
+    
+    plt.xscale('log', base=10)
+    plt.plot(_lambda, min_DCF, label='Minimum DCF', marker='o')
+    plt.plot(_lambda, act_DCF, label='Actual DCF', marker='x')
+    
+    plt.xlabel('C (Regularization strength)')
+    plt.ylabel('DCF')
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    plt.show()

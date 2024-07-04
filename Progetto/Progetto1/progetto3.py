@@ -43,8 +43,6 @@ if __name__ == '__main__':
         print(X1D.shape)
         mu_ML, C_ML = compute_Mean_Covariance(X1D)  # compute mean and covariance for each class 
         ll = loglikelihood(X1D, mu_ML, C_ML)
-
-        print("\n------ feature ", i)
         
         print("ll class 0 = ", ll)
 

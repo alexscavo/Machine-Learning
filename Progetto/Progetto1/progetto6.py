@@ -5,7 +5,6 @@ import scipy
 import scipy.optimize
 import functions
 import loadData
-import plots
 
 
 def trainLogReg(DTR, LTR, l):
@@ -223,7 +222,7 @@ if __name__ == '__main__':
         
 
 
-    '''#plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
 
     # --- REDUCED TRAINING SET ---
     print('-'*40)
@@ -248,7 +247,7 @@ if __name__ == '__main__':
         act_DCFs.append(DCF_act)
         print('minDCF - pT = 0.1:', round(DCF_min,4))
         print('actDCF - pT = 0.1:', round(DCF_act,4))
-        print()'''
+        print()
         
 
 
@@ -256,7 +255,7 @@ if __name__ == '__main__':
 
 
     # --- WEIGHTED TRAINING SET ---
-    '''print('-'*40)
+    print('-'*40)
     print('PRIOR-WEIGHTED MODEL - pT = 0.1')
     min_DCFs = []
     act_DCFs = []
@@ -274,7 +273,7 @@ if __name__ == '__main__':
         min_DCFs.append(DCF_min)
         act_DCFs.append(DCF_act)
 
-    plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)'''
+    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
 
 
 
@@ -335,7 +334,7 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act,4))
         print()
 
-    plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
 
     min_DCFs = []
     act_DCFs = []
@@ -356,7 +355,7 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act,4))
         print()
 
-    plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
 
 
 
