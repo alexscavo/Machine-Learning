@@ -5,7 +5,6 @@ import scipy
 import scipy.optimize
 import functions
 import loadData
-import plots
 
 
 def trainLogReg(DTR, LTR, l):
