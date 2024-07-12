@@ -136,10 +136,10 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act, 4))
         print() 
 
-    plots.plot_lab9('SVM with centered Data',min_DCFs, act_DCFs, C)
+    plots.plot_lab9('SVM with centered Data',min_DCFs, act_DCFs, C)'''
 
 
-    # --- POLYNOMIAL KERNEL ---
+    '''# --- POLYNOMIAL KERNEL ---
     print('-'*40)
     print('POLYNOMIAL KERNEL SVM')
     kernelFunc = polyKernel(2, 1)
@@ -193,7 +193,6 @@ if __name__ == '__main__':
         title = 'RBF Kernel SVM: C=%e Gamma=%e' % c, gamma
 
         plots.plot_lab9(title ,min_DCFs, act_DCFs, C)
-
 
     '''# --- OPTIONAL ---
     print('-'*40)

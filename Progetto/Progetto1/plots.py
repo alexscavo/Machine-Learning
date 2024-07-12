@@ -98,3 +98,18 @@ def plot_lab9(title, min_DCF, act_DCF, _lambda):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+
+def plot_gmm(min_DCF, act_DCF, num_components):
+    plt.figure(figsize=(10, 6))
+    
+    plt.plot(num_components, min_DCF, label='Minimum DCF', marker='o')
+    plt.plot(num_components, act_DCF, label='Actual DCF', marker='x')
+    
+    plt.xlabel('Number of Components (True Class)')
+    plt.ylabel('DCF')
+    plt.title('DCF vs Number of Components for GMM')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
