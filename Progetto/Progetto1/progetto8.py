@@ -19,7 +19,6 @@ def plot_comparison(results):
         plt.plot(x, min_DCF, label=f'{model} Minimum DCF', marker='o')
         plt.plot(x, act_DCF, label=f'{model} Actual DCF', marker='x')
 
-    print('stampo')
     plt.xscale('log', base=10)
     plt.xlabel('Parameter (C for LR and SVM, Components for GMM)')
     plt.ylabel('DCF')
@@ -250,10 +249,20 @@ if __name__ == '__main__':
 
     DTR_expanded = progetto6.quadratic_feature_expansion(DTR)
     DVAL_expanded = progetto6.quadratic_feature_expansion(DVAL)
+
+    #logistic regression
+    w, b = progetto6.trainLogReg(DTR_expanded, LTR, 3.16227766e-04)
+    
+    #SVM rbf kernel
+    kernelFunc = progetto7.rbfKernel(numpy.exp(-4))
+    fScore = progetto7.train_dual_SVM_kernel(DTR, LTR, _lambda, kernelFunc, 1.0)
+
+
+
     # Logistic Regression
     for _lambda in lambda_values:
         w, b = progetto6.trainLogReg(DTR_expanded, LTR, _lambda)   # calcolo i parametri del modello, w e b
-        Sval = w.T @ DVAL_expanded + b       
+        Sval = w.T @ DVAL_expanded + b
 
         emp_prior = (LTR == 1).sum() / float(LTR.size)
         Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
