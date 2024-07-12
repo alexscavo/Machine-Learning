@@ -3,9 +3,11 @@ import functions
 import scipy
 import loadData
 import progetto6
+import progetto5
 import matplotlib.pyplot as plt
 import plots
 import progetto7
+import gmm
 
 
 def plot_comparison(results):
@@ -172,7 +174,7 @@ if __name__ == '__main__':
     best_min_DCF = 100
     best_parameters = []
 
-    # --- FULL COVARIANCE MATRIX ---
+    '''# --- FULL COVARIANCE MATRIX ---
     covType = 'full'
     print('-'*40)
     print(covType)
@@ -209,7 +211,7 @@ if __name__ == '__main__':
         plt.legend()
         plt.grid(True)
         #plt.savefig("plots_p8/standard_gmm_false_component_%d.pdf"%(int(numComponents0))) 
-        #plt.show()
+        #plt.show()'''
 
     '''# --- FULL COVARIANCE MATRIX ---
     covType = 'diagonal'
@@ -234,73 +236,41 @@ if __name__ == '__main__':
             print('actDCF - pT = 0.1:', round(DCF_act,4))
         print('---')'''
 
-
+    #
     # --- MODELS COMPARISON --- 
-    components = [1, 2, 3, 4, 5]
-    C = [0.1, 1, 10]
-    lambda_values = numpy.logspace(-4, 2, 13)
+    #
 
-    # Storing results for plotting
-    results = {
-        "LR": {"min_DCF": [], "act_DCF": [], "x": []},
-        "SVM": {"min_DCF": [], "act_DCF": [], "x": []},
-        "GMM": {"min_DCF": [], "act_DCF": [], "x": []}
-    }
+    llrs = []
+    tags = ["Quad-Log-Reg", "SVM, RBF kernel", "GMM, Diagonal Cov Matr"]
 
+    #Quadratic logistic regression
+    _lambda = 3.162278e-02
     DTR_expanded = progetto6.quadratic_feature_expansion(DTR)
     DVAL_expanded = progetto6.quadratic_feature_expansion(DVAL)
+    w, b = progetto6.trainLogReg(DTR_expanded, LTR, _lambda)
+    Sval = numpy.dot(w.T, DVAL_expanded) + b # Compute validation scores
+    pEmp = (LTR == 1).sum() / LTR.size
+    Sllr = Sval - numpy.log(pEmp / (1-pEmp))
+    llrs.append(Sllr)
 
-    #logistic regression
-    w, b = progetto6.trainLogReg(DTR_expanded, LTR, 3.16227766e-04)
+    #Non-linear SVM, RBF kernel
+    gamma = numpy.exp(-2)
+    C = 3.162278e+01
+    eps = 1 # RBF kernel does not account for the bias term
+    fScore = progetto7.train_dual_SVM_kernel(DTR, LTR, C, progetto7.rbfKernel(gamma), eps) #returns the fScore function built
+    SVAL = fScore(DVAL)
+    llrs.append(SVAL)
+
+    #GMM with diagonal covariance matrix
+    D0 = DTR[:, LTR == 0]
+    D1 = DTR[:, LTR == 1]          
+    numComponents0 = 8
+    numComponents1 = 32
+    covType='Diagonal'
+    gmm0 = gmm.train_GMM_LBG_EM(D0, numComponents0, covType, psiEig=0.01, verbose=False)
+    gmm1 = gmm.train_GMM_LBG_EM(D1, numComponents1, covType, psiEig=0.01, verbose=False)
+    Sllr = logpdf_GMM(DVAL, gmm1) - logpdf_GMM(DVAL, gmm0)
+    llrs.append(Sllr)
     
-    #SVM rbf kernel
-    kernelFunc = progetto7.rbfKernel(numpy.exp(-4))
-    fScore = progetto7.train_dual_SVM_kernel(DTR, LTR, _lambda, kernelFunc, 1.0)
-
-
-
-    # Logistic Regression
-    for _lambda in lambda_values:
-        w, b = progetto6.trainLogReg(DTR_expanded, LTR, _lambda)   # calcolo i parametri del modello, w e b
-        Sval = w.T @ DVAL_expanded + b
-
-        emp_prior = (LTR == 1).sum() / float(LTR.size)
-        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
-        DCF_min = progetto6.compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
-        DCF_act = progetto6.compute_actualDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
-        min_DCFs.append(DCF_min)
-        act_DCFs.append(DCF_act)
-        results["LR"]["min_DCF"].append(DCF_min)
-        results["LR"]["act_DCF"].append(DCF_act)
-        results["LR"]["x"].append(_lambda)
-
-    # SVM
-    eps = 1.0
-    for _lambda in lambda_values:
-        kernelFunc = progetto7.rbfKernel(numpy.exp(-4))
-        fScore = progetto7.train_dual_SVM_kernel(DTR, LTR, _lambda, kernelFunc, eps)
-        SVAL = fScore(DVAL)
-        PVAL = (SVAL > 0) * 1
-        err = (PVAL != LVAL).sum() / float(LVAL.size)
-        DCF_min = progetto6.compute_minDCF(SVAL, LVAL, 0.1, 1.0, 1.0)
-        DCF_act = progetto6.compute_actualDCF(SVAL, LVAL, 0.1, 1.0, 1.0)
-        min_DCFs.append(DCF_min)
-        act_DCFs.append(DCF_act)
-        results["SVM"]["min_DCF"].append(DCF_min)
-        results["SVM"]["act_DCF"].append(DCF_act)
-        results["SVM"]["x"].append(_lambda)
-
-    # GMM
-    covType = 'full'
-    for _lambda in lambda_values:
-        gmm0 = train_GMM_LBG_EM(DTR, numComponents0, covType=covType, verbose=False, psiEig=0.01)
-        gmm1 = train_GMM_LBG_EM(DTR, numComponents1, covType=covType, verbose=False, psiEig=0.01)
-        SLLR = logpdf_GMM(DVAL, gmm1) - logpdf_GMM(DVAL, gmm0)
-        DCF_min = progetto6.compute_minDCF(SLLR, LVAL, 0.1, 1.0, 1.0)
-        DCF_act = progetto6.compute_actualDCF(SLLR, LVAL, 0.1, 1.0, 1.0)
-        results["GMM"]["min_DCF"].append(DCF_min)
-        results["GMM"]["act_DCF"].append(DCF_act)
-        results["GMM"]["x"].append(_lambda)
-
-    plot_comparison(results)
+    progetto5.bayes_error_plots(llrs, LVAL, tags)
 
