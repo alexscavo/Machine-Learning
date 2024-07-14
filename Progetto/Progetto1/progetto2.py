@@ -120,7 +120,8 @@ if __name__ == '__main__':
     #
     #-----LDA for classification
     #
-    
+    print('-'*40)
+    print('LDA for classification')
     (DTR, LTR), (DVAL, LVAL)  = functions.split_training_test_dataset(D, L)     # split the dataset into training data and validation data. Same thing for the labels
 
     DTR_lda = LDA_matrix(DTR, LTR, 1)   # compute the LDA matrix over training data
@@ -144,19 +145,42 @@ if __name__ == '__main__':
     print('Number of errors:', (PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
     print('Error rate: %.3f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
 
-    '''
-    treshold = (DTRP_lda[0, LTR == 0].mean() + DTRP_lda[0, LTR == 1].mean()) / 2.0
+
+    treshold = -0.10504437678623708
+
+    PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
+    PVAL[DVALP_lda[0] >= treshold] = 1
+    PVAL[DVALP_lda[0] < treshold] = 0
+
+    print('Treshold: ', treshold)
+    print('Number of errors:', (PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
+    print('Error rate: %.3f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
+
+    treshold = 0.2
+
+    PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
+    PVAL[DVALP_lda[0] >= treshold] = 1
+    PVAL[DVALP_lda[0] < treshold] = 0
+
+    print('Treshold: ', treshold)
+    print('Number of errors:', (PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
+    print('Error rate: %.3f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
+
+   
+   #finds the best threshold
+    '''treshold = (DTRP_lda[0, LTR == 0].mean() + DTRP_lda[0, LTR == 1].mean()) / 2.0
     best_treshold, best_PVAL, best_perc = find_best_treshold(treshold, DVALP_lda, LVAL)
     print('Best Treshold: ', best_treshold)
     print('Number of errors:', (best_PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
-    print('Error rate: %.3f%%' % ( (best_PVAL != LVAL).sum() / float(LVAL.size) *100 ))
-    '''
+    print('Error rate: %.3f%%' % ( (best_PVAL != LVAL).sum() / float(LVAL.size) *100 ))'''
+
 
     #
     #-----PCA + LDA-----
     #
-    
-    for m in range(2, 6):
+    print('-'*40)
+    print('PCA + LDA')
+    for m in range(2, 7):
         DTR_pca = PCA_matrix(DTR, m)
 
         DTRP_pca = DTR_pca.T @ DTR    # now I have the reduced dimensionality applied on the training dataset
@@ -172,7 +196,7 @@ if __name__ == '__main__':
         DVALP_lda = DTR_lda.T @ DVALP_pca
 
         treshold = (DTRP_lda[0, LTR == 0].mean() + DTRP_lda[0, LTR == 1].mean()) / 2.0
-
+        
         PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
         PVAL[DVALP_lda[0] >= treshold] = 1
         PVAL[DVALP_lda[0] < treshold] = 0

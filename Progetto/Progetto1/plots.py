@@ -65,11 +65,13 @@ def plot_scatter(folder, D, L, featureOfInterest):
 
 def plots_pdf_GAU(folder, i, c, X1D, mu_ML, C_ML):
     plt.figure()
+    plt.title(f"Feature {i} - class {c}")
     plt.plot(X1D.ravel(), numpy.exp(progetto3.logpdf_GAU_ND_extended(X1D, mu_ML, C_ML)))
     plt.hist(X1D.ravel(), bins = 50, density = True)
     path = f"{folder}/plot_{i}_class{c}.pdf"
     plt.savefig(path)
     plt.show()
+
 
 def plot_lab8(min_DCF, act_DCF, _lambda):
     plt.figure(figsize=(10, 6))

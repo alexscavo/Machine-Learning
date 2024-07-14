@@ -29,11 +29,11 @@ if __name__ == '__main__':
     plots.plot_histograms("plots_p1", D, L, [4, 5])
     plots.plot_scatter("plots_p1", D, L, [4, 5])
     
-    '''
+
     mu = D.mean(1).reshape((D.shape[0], 1))
     var = D.var(1)
     print('Mean =\n {} \n\n Variance = {}\n'.format(mu, var))
-    '''
+  
 
     for cls in [0, 1]:
         print('class', cls)
