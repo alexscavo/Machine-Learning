@@ -104,6 +104,10 @@ if __name__ == '__main__':
 
     #plots.plot_histograms("plots_p2/PCA", DP_pca, L, range(6))
 
+    #plots.plot_scatter("plots_p2/PCA", DP_pca, L, [0, 1])
+    #plots.plot_scatter("plots_p2/PCA", DP_pca, L, [2, 3])
+    #plots.plot_scatter("plots_p2/PCA", DP_pca, L, [4, 5])
+
 
     #
     #-----LDA-----
@@ -206,3 +210,5 @@ if __name__ == '__main__':
         print('Number of errors:', (PVAL != LVAL).sum(), '(out of %d samples)' % (LVAL.size))
         print('Error rate: %.3f%%' % ( (PVAL != LVAL).sum() / float(LVAL.size) *100 ))
         print()
+
+        #plots.plot_histograms("plots_p2/LDA", DVALP_lda, LVAL, range(1))

@@ -18,8 +18,8 @@ def plot_histograms(folder, D, L, featuresOfInterest):
 
         plt.legend()
         plt.tight_layout()
-        path = f"{folder}/hist_{feat}.pdf"
-        plt.savefig(path)
+        '''path = f"{folder}/hist_{feat}.pdf"
+        plt.savefig(path)'''
     plt.show()
 
 
@@ -65,10 +65,10 @@ def plot_scatter(folder, D, L, featureOfInterest):
 
 def plots_pdf_GAU(folder, i, c, X1D, mu_ML, C_ML):
     plt.figure()
-    plt.title(f"Feature {i} - class {c}")
+    plt.title(f"Feature {i+1} - class {c}")
     plt.plot(X1D.ravel(), numpy.exp(progetto3.logpdf_GAU_ND_extended(X1D, mu_ML, C_ML)))
     plt.hist(X1D.ravel(), bins = 50, density = True)
-    path = f"{folder}/plot_{i}_class{c}.pdf"
+    path = f"{folder}/plot_{i+1}_class{c}.pdf"
     plt.savefig(path)
     plt.show()
 
