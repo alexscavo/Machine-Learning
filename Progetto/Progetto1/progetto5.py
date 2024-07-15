@@ -371,10 +371,9 @@ if __name__ == '__main__':
             #print('Bayes risk:', round(bayes_risk, 5))
 
             normalized_bayes = compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp) 
-            print('Actual DCF:', round(normalized_bayes, 5)) 
 
             DCF_min, threshold_min = compute_minDCF(llr, LVAL, prior, Cfn, Cfp, True)
-            print('DCF min:', round(DCF_min, 5), '- Threshold:', round(threshold_min, 5))
+            print('Actual DCF:', round(normalized_bayes, 5), ' - DCF min:', round(DCF_min, 5), '- Threshold:', round(threshold_min, 5))
             print('DCF difference =', round(normalized_bayes-DCF_min, 5), '-', round(((normalized_bayes-DCF_min)/DCF_min)*100, 5), '%')
 
         # ----- TIED GAUSSIAN -----
@@ -397,10 +396,9 @@ if __name__ == '__main__':
             #print('Bayes risk:', round(bayes_risk, 5))
 
             normalized_bayes = compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp) 
-            print('Actual DCF:', round(normalized_bayes, 5)) 
 
             DCF_min, threshold_min = compute_minDCF(llr, LVAL, prior, Cfn, Cfp, True)
-            print('DCF min:', round(DCF_min, 5), '- Threshold:', round(threshold_min, 5))
+            print('Actual DCF:', round(normalized_bayes, 5), ' - DCF min:', round(DCF_min, 5), '- Threshold:', round(threshold_min, 5))
             print('DCF difference =', round(normalized_bayes-DCF_min, 5), '-', round(((normalized_bayes-DCF_min)/DCF_min)*100, 5), '%')
 
 
@@ -424,10 +422,9 @@ if __name__ == '__main__':
             #print('Bayes risk:', round(bayes_risk, 5))
 
             normalized_bayes = compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp) 
-            print('Actual DCF:', round(normalized_bayes, 5)) 
 
             DCF_min, threshold_min = compute_minDCF(llr, LVAL, prior, Cfn, Cfp, True)
-            print('DCF min:', round(DCF_min, 5), '- Threshold:', round(threshold_min, 5))
+            print('Actual DCF:', round(normalized_bayes, 5), ' - DCF min:', round(DCF_min, 5), '- Threshold:', round(threshold_min, 5))
             print('DCF difference =', round(normalized_bayes-DCF_min, 5), '-', round(((normalized_bayes-DCF_min)/DCF_min)*100, 5), '%')
         print('-'*40)
 
@@ -472,3 +469,5 @@ if __name__ == '__main__':
 
     
     bayes_error_plots(llrs, LVAL, tags)
+
+    

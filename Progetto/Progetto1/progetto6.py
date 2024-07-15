@@ -5,6 +5,8 @@ import scipy
 import scipy.optimize
 import functions
 import loadData
+import plots
+import progetto5
 
 
 def trainLogReg(DTR, LTR, l):
@@ -206,7 +208,7 @@ if __name__ == '__main__':
     act_DCFs = []
     pT = 0.1
     
-    for _lambda in lambda_values:
+    '''for _lambda in lambda_values:
         w, b = trainLogReg(DTR, LTR, _lambda)   # calcolo i parametri del modello, w e b
         Sval = w.T @ DVAL + b       
 
@@ -222,7 +224,7 @@ if __name__ == '__main__':
         
 
 
-    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    plots.plot_lab8('Logistic Regression',min_DCFs, act_DCFs, lambda_values)
 
     # --- REDUCED TRAINING SET ---
     print('-'*40)
@@ -251,7 +253,7 @@ if __name__ == '__main__':
         
 
 
-    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    plots.plot_lab8('Logistic Regression (reduced training set)',min_DCFs, act_DCFs, lambda_values)
 
 
     # --- WEIGHTED TRAINING SET ---
@@ -273,7 +275,7 @@ if __name__ == '__main__':
         min_DCFs.append(DCF_min)
         act_DCFs.append(DCF_act)
 
-    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    plots.plot_lab8('Prior-Weighted Logistic Regression',min_DCFs, act_DCFs, lambda_values)
 
 
 
@@ -306,7 +308,7 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act,4))
         print()
 
-    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    plots.plot_lab8('Quadratic Logistic Regression',min_DCFs, act_DCFs, lambda_values)
 
     # --- CENTERING THE DATA ---
     print('-'*40)
@@ -334,7 +336,7 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act,4))
         print()
 
-    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    plots.plot_lab8('Regularized Logistic regression (centered data)',min_DCFs, act_DCFs, lambda_values)
 
     min_DCFs = []
     act_DCFs = []
@@ -355,7 +357,185 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act,4))
         print()
 
-    #plots.plot_lab8(min_DCFs, act_DCFs, lambda_values)
+    plots.plot_lab8('Non-Regularized Logistic Regression (centered data)',min_DCFs, act_DCFs, lambda_values)
+
+    DTR_pca = functions.PCA_matrix(DTR, 4) 
+
+    DTRP_pca = DTR_pca.T @ DTR    # project the data over the new subspace
+    DVALP_pca = DTR_pca.T @ DVAL
+
+    min_DCFs = []
+    act_DCFs = []
+    pT = 0.1
+    print('-'*40)
+    print('NON-REGULARIZED LOG REG WITH PCA')
+    for _lambda in lambda_values:
+        w, b = trainLogRegNonRegularized(DTRP_pca, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVALP_pca + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        DCF_act = compute_actualDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCFs.append(DCF_min)
+        act_DCFs.append(DCF_act)
+        print('minDCF - pT = 0.1:', round(DCF_min,4))
+        print('actDCF - pT = 0.1:', round(DCF_act,4))
+        print()
+
+    plots.plot_lab8('Non-Regularized Logistic Regression (PCA)',min_DCFs, act_DCFs, lambda_values)
 
 
+    DTR_pca = functions.PCA_matrix(DTR, 4) 
+
+    DTRP_pca = DTR_pca.T @ DTR    # project the data over the new subspace
+    DVALP_pca = DTR_pca.T @ DVAL
+
+    min_DCFs = []
+    act_DCFs = []
+    pT = 0.1
+    print('-'*40)
+    print('REGULARIZED LOG REG WITH PCA')
+    for _lambda in lambda_values:
+        w, b = trainLogReg(DTRP_pca, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVALP_pca + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        DCF_act = compute_actualDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCFs.append(DCF_min)
+        act_DCFs.append(DCF_act)
+        print('minDCF - pT = 0.1:', round(DCF_min,4))
+        print('actDCF - pT = 0.1:', round(DCF_act,4))
+        print()
+
+    plots.plot_lab8('Regularized Logistic Regression (PCA)',min_DCFs, act_DCFs, lambda_values)
+'''
+
+
+    '''# --- MODEL COMPARISON WITH MIN DCF AS INDEX ---
+    min_DCFs = {}
+    min_DCF = []
+    pT = 0.1
+    
+    for _lambda in lambda_values:
+        w, b = trainLogReg(DTR, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVAL + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCF.append(DCF_min)
+
+    min_DCFs['Standard LR'] = min_DCF
+
+    DTR_reduced = DTR[:, ::50]
+    LTR_reduced = LTR[::50]
+
+    lambda_values = numpy.logspace(-4, 2, 13)
+    min_DCF = []
+        
+    for _lambda in lambda_values:
+        w, b = trainLogReg(DTR_reduced, LTR_reduced, _lambda)   # train the model
+
+        Sval = w.T @ DVAL + b       
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCF.append(DCF_min)
+        
+    min_DCFs['Reduced LR'] = min_DCF
+
+    min_DCF = []
+
+    for _lambda in lambda_values:
+
+        w, b = trainWeightedLoReg(DTR, LTR, _lambda, pT)
+        Sval = w.T @ DVAL + b       # calcolo l'array di score
+        Sllr = Sval - numpy.log(pT / (1-pT))     # rimuovo l'empirical prior dagli score per avere uno score application-dependant che si comporti come una llr
+
+        DCF_min = compute_minDCF(Sllr, LVAL, pT, 1.0, 1.0)
+        min_DCF.append(DCF_min)
+
+    min_DCFs['Weighted LR'] = min_DCF
+
+    DTR_expanded = quadratic_feature_expansion(DTR)
+    DVAL_expanded = quadratic_feature_expansion(DVAL)
+
+    lambda_values = numpy.logspace(-4, 2, 13)
+    min_DCF = []
+    pT = 0.1
+    
+    for _lambda in lambda_values:
+        w, b = trainLogReg(DTR_expanded, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVAL_expanded + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCF.append(DCF_min)
+
+    min_DCFs['Quadratic LR'] = min_DCF
+
+    mean, _ = functions.compute_mean_covariance(DTR)
+    DTR_centered = DTR - mean
+    DVAL_centered = DVAL - mean
+
+    lambda_values = numpy.logspace(-4, 2, 13)
+    min_DCF = []
+    pT = 0.1
+    
+    for _lambda in lambda_values:
+        w, b = trainLogReg(DTR_centered, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVAL_centered + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCF.append(DCF_min)
+        
+    min_DCFs['Centered regularized LR'] = min_DCF
+
+    min_DCF = []
+    pT = 0.1
+    print('-'*40)
+    print('NON REGULARIZED CENTERED LOG REG')
+    for _lambda in lambda_values:
+        w, b = trainLogRegNonRegularized(DTR_centered, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVAL_centered + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCF.append(DCF_min)
+        
+    min_DCFs['Centered non-regularized LR'] = min_DCF
+
+    plots.plot_lab8_comparison(min_DCFs, lambda_values)'''
+
+
+    # --- comparison with old models ---
+    DTR_expanded = quadratic_feature_expansion(DTR)
+    DVAL_expanded = quadratic_feature_expansion(DVAL)
+
+    lambda_values = numpy.logspace(-4, 2, 13)
+    min_DCFs = {}
+    min_DCF = []
+    class_prior_prob = [0.5, 0.5]   # class prior probabilities
+    threshold = -numpy.log(class_prior_prob[1]/class_prior_prob[0])     # compute the threshold as -log( P(C == 1)/P(C == 0) )
+
+    pT = 0.1
+    
+    for _lambda in lambda_values:
+        w, b = trainLogReg(DTR_expanded, LTR, _lambda)   # calcolo i parametri del modello, w e b
+        Sval = w.T @ DVAL_expanded + b       
+
+        emp_prior = (LTR == 1).sum() / float(LTR.size)
+        Sllr = Sval - numpy.log(emp_prior / (1-emp_prior))     
+        DCF_min = compute_minDCF(Sllr, LVAL, 0.1, 1.0, 1.0)
+        min_DCF.append(DCF_min)
+
+    min_DCFs['Quadratic LR'] = min_DCF
 

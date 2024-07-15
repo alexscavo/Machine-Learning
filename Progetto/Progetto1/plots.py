@@ -73,7 +73,7 @@ def plots_pdf_GAU(folder, i, c, X1D, mu_ML, C_ML):
     plt.show()
 
 
-def plot_lab8(min_DCF, act_DCF, _lambda):
+def plot_lab8(model, min_DCF, act_DCF, _lambda):
     plt.figure(figsize=(10, 6))
     
     plt.xscale('log', base=10)
@@ -82,7 +82,22 @@ def plot_lab8(min_DCF, act_DCF, _lambda):
     
     plt.xlabel('λ (Regularization strength)')
     plt.ylabel('DCF')
-    plt.title('DCF vs λ for Logistic Regression')
+    plt.title('DCF vs λ for ' + model)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def plot_lab8_comparison(min_DCFs, _lambda):
+    plt.figure(figsize=(10, 6))
+    
+    plt.xscale('log', base=10)
+    
+    for model in min_DCFs:
+        plt.plot(_lambda, min_DCFs[model], label=model + ' minDCF', marker='o')
+    
+    plt.xlabel('λ (Regularization strength)')
+    plt.ylabel('DCF')
+    plt.title('Compare minDCF for all the models')
     plt.legend()
     plt.grid(True)
     plt.show()
