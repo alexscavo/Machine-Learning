@@ -208,7 +208,7 @@ if __name__ == '__main__':
     act_DCFs = []
     pT = 0.1
     
-    '''for _lambda in lambda_values:
+    for _lambda in lambda_values:
         w, b = trainLogReg(DTR, LTR, _lambda)   # calcolo i parametri del modello, w e b
         Sval = w.T @ DVAL + b       
 
@@ -411,10 +411,10 @@ if __name__ == '__main__':
         print()
 
     plots.plot_lab8('Regularized Logistic Regression (PCA)',min_DCFs, act_DCFs, lambda_values)
-'''
 
 
-    '''# --- MODEL COMPARISON WITH MIN DCF AS INDEX ---
+
+    # --- MODEL COMPARISON WITH MIN DCF AS INDEX ---
     min_DCFs = {}
     min_DCF = []
     pT = 0.1
@@ -513,7 +513,7 @@ if __name__ == '__main__':
         
     min_DCFs['Centered non-regularized LR'] = min_DCF
 
-    plots.plot_lab8_comparison(min_DCFs, lambda_values)'''
+    plots.plot_lab8_comparison(min_DCFs, lambda_values)
 
 
     # --- comparison with old models ---
@@ -539,3 +539,60 @@ if __name__ == '__main__':
 
     min_DCFs['Quadratic LR'] = min_DCF
 
+    
+
+    m_values = [6, 4, 6]
+
+    DTRP_pcas = []
+    DVALP_pcas = []
+
+    for m in m_values:
+        DTR_pca = functions.PCA_matrix(DTR, m) 
+        DTRP = DTR_pca.T @ DTR    # project the data over the new subspace
+        DVALP = DTR_pca.T @ DVAL
+
+        DTRP_pcas.append(DTRP)
+        DVALP_pcas.append(DVALP)
+
+    tags = ['MVG', 'Tied', 'Naive']
+
+    for i in range(3):
+
+        model = tags[i]
+
+        DTRP_pca = DTRP_pcas[i]
+        DVALP_pca = DVALP_pcas[i]
+
+
+        if model == 'MVG':
+            parameters = functions.compute_parameters_MVG(DTRP_pca, LTR)   # compute training parameters with MVG model
+        
+        elif model == 'Tied':
+            parameters = functions.compute_parameters_tied(DTRP_pca, LTR)  # compute training parameters with tied Gaussian model
+
+        elif model == 'Naive':
+            parameters = functions.compute_parameters_naive_bayes(DTRP_pca, LTR) # compute training parameters with Naive Bayes model
+
+        llr = functions.compute_llr(DVALP_pca, parameters)
+        
+        min_DCF = []
+        Cfn = 1.0
+        Cfp = 1.0
+
+        c = i*2
+
+        effPriors = 1.0 / (1.0 + numpy.exp(-lambda_values))
+
+        for effPrior in effPriors:
+            predictions = compute_optimal_bayes_binary_llr(llr, effPrior, Cfn, Cfp)
+            conf_matrix = compute_confusion_matrix(predictions, LVAL)
+
+            actualDCF = compute_empirical_bayes_risk_binary(conf_matrix, effPrior, Cfn, Cfp)    # NORMALIZED DCF = ACTUAL DCF
+            minDCF = compute_minDCF(llr, LVAL, effPrior, Cfn, Cfp)
+
+            min_DCF.append(minDCF)
+        
+        min_DCFs[model] = min_DCF
+
+
+    plots.plot_lab8_comparison(min_DCFs, lambda_values)

@@ -1,5 +1,5 @@
-import matplotlib
-import matplotlib.pyplot
+import matplotlib 
+import matplotlib.pyplot as plt
 import numpy
 import scipy
 import scipy.optimize
@@ -136,10 +136,10 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act, 4))
         print() 
 
-    plots.plot_lab9('SVM with centered Data',min_DCFs, act_DCFs, C)'''
+    plots.plot_lab9('SVM with centered Data',min_DCFs, act_DCFs, C)
 
 
-    '''# --- POLYNOMIAL KERNEL ---
+    # --- POLYNOMIAL KERNEL ---
     print('-'*40)
     print('POLYNOMIAL KERNEL SVM')
     kernelFunc = polyKernel(2, 1)
@@ -172,10 +172,14 @@ if __name__ == '__main__':
 
     C = numpy.logspace(-3, 2, 11)
     Gamma = [numpy.exp(-4), numpy.exp(-3), numpy.exp(-2), numpy.exp(-1)]
-
+    i = 0
+    plt.figure(figsize=(10, 6))
+    
+    plt.xscale('log', base=10)
     for gamma in Gamma:
         min_DCFs = []
         act_DCFs = []
+        i += 1
         for c in C:
             kernelFunc = rbfKernel(gamma)
             fScore = train_dual_SVM_kernel(DTR, LTR, c, kernelFunc, eps)
@@ -190,9 +194,19 @@ if __name__ == '__main__':
             print('actDCF - pT = 0.1:', round(DCF_act, 4))
             print() 
 
-        title = 'RBF Kernel SVM: Gamma= %e' % gamma
+        title = 'RBF Kernel SVM'
 
-        plots.plot_lab9(title ,min_DCFs, act_DCFs, C)
+        #plots.plot_lab9(title ,min_DCFs, act_DCFs, C, 'plots_p7',i, True)
+        
+        plt.plot(C, min_DCFs, label=f"Minimum DCF Gamma = {round(gamma, 3)}", marker='o')
+        plt.plot(C, act_DCFs, label=f"Actual DCF Gamma = {round(gamma, 3)}", marker='x')
+        
+    plt.xlabel('C (Regularization strength)')
+    plt.ylabel('DCF')
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
     '''# --- OPTIONAL ---
     print('-'*40)

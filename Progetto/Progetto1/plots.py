@@ -102,7 +102,7 @@ def plot_lab8_comparison(min_DCFs, _lambda):
     plt.grid(True)
     plt.show()
 
-def plot_lab9(title, min_DCF, act_DCF, _lambda):
+def plot_lab9(title, min_DCF, act_DCF, _lambda, folder = '', i = -1, to_save = False):
     plt.figure(figsize=(10, 6))
     
     plt.xscale('log', base=10)
@@ -114,7 +114,12 @@ def plot_lab9(title, min_DCF, act_DCF, _lambda):
     plt.title(title)
     plt.legend()
     plt.grid(True)
-    plt.show()
+
+    if to_save:
+        path = f"{folder}/plot_{i}"
+        plt.savefig(path)
+    else:
+        plt.show()
 
 
 def plot_gmm(min_DCF, act_DCF, num_components):
