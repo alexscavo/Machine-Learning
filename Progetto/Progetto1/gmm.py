@@ -39,11 +39,6 @@ def split_db_2to1(D, L, seed=0):
     
     return (DTR, LTR), (DVAL, LVAL)
 
-def load_iris():
-    
-    import sklearn.datasets
-    return sklearn.datasets.load_iris()['data'].T, sklearn.datasets.load_iris()['target']
-
 def compute_mu_C(D):
     mu = vcol(D.mean(1))
     C = ((D-mu) @ (D-mu).T) / float(D.shape[1])

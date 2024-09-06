@@ -62,7 +62,7 @@ def compute_llr(D, parameters):
 def compute_error_rate(P, L):
     return ((P != L).sum()/float(L.size))*100
 
-def compute_predictions(D, class_prior_prob, llr, threshold):
+def compute_predictions(DVAL, class_prior_prob, llr, threshold):
     PVAL = numpy.zeros(DVAL.shape[1], dtype = numpy.int32)
     class_prior_prob = [0.5, 0.5]   # class prior probabilities
 

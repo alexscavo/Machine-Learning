@@ -88,7 +88,7 @@ def trainWeightedLoReg(DTR, LTR, l, pT):
         return objective_function, numpy.hstack([GW, numpy.array(Gb)])
 
     vf = scipy.optimize.fmin_l_bfgs_b(func = logreg_obj, x0 = numpy.zeros(DTR.shape[0]+1))[0] # cerco il minimo della funzione obbiettivo
-    print('weighted Log-reg - lambda =', l, ' -J(w, b) =', logreg_obj(vf)[0])
+    #print('weighted Log-reg - lambda =', l, ' -J(w, b) =', logreg_obj(vf)[0])
     return vf[:-1], vf[-1]  # ritorno w e b
 
 
@@ -208,7 +208,7 @@ if __name__ == '__main__':
     act_DCFs = []
     pT = 0.1
     
-    for _lambda in lambda_values:
+    '''for _lambda in lambda_values:
         w, b = trainLogReg(DTR, LTR, _lambda)   # calcolo i parametri del modello, w e b
         Sval = w.T @ DVAL + b       
 
@@ -275,7 +275,7 @@ if __name__ == '__main__':
         min_DCFs.append(DCF_min)
         act_DCFs.append(DCF_act)
 
-    plots.plot_lab8('Prior-Weighted Logistic Regression',min_DCFs, act_DCFs, lambda_values)
+    plots.plot_lab8('Prior-Weighted Logistic Regression',min_DCFs, act_DCFs, lambda_values)'''
 
 
 
@@ -310,7 +310,7 @@ if __name__ == '__main__':
 
     plots.plot_lab8('Quadratic Logistic Regression',min_DCFs, act_DCFs, lambda_values)
 
-    # --- CENTERING THE DATA ---
+    '''# --- CENTERING THE DATA ---
     print('-'*40)
     print('CENTERED DATA LOGISTIC REGRESSION')
     mean, _ = functions.compute_mean_covariance(DTR)
@@ -595,4 +595,4 @@ if __name__ == '__main__':
         min_DCFs[model] = min_DCF
 
 
-    plots.plot_lab8_comparison(min_DCFs, lambda_values)
+    plots.plot_lab8_comparison(min_DCFs, lambda_values)'''

@@ -121,8 +121,8 @@ def bayes_error_plots(llrs, LVAL, tags):
             min_DCF.append(minDCF)
 
 
-        matplotlib.pyplot.plot(effPriorLogOdds, actual_DCF, label=tags[i]+' DCF', color = colors[c])
-        matplotlib.pyplot.plot(effPriorLogOdds, min_DCF, label=tags[i]+' minDCF', color = colors[c+1])
+        matplotlib.pyplot.plot(effPriorLogOdds, actual_DCF, label=tags[i]+' DCF', color = colors[i])
+        matplotlib.pyplot.plot(effPriorLogOdds, min_DCF, label=tags[i]+' minDCF', color = colors[i], linestyle='--')
         matplotlib.pyplot.ylim([0, 1.1])
         matplotlib.pyplot.xlim([-4, 4])
         matplotlib.pyplot.legend()
