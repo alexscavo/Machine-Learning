@@ -481,6 +481,8 @@ if __name__ == '__main__':
 
     # QLR + GMM
     prior_calibration_qlr_gmm = 0.4
+    gmm0 = gmm.train_GMM_LBG_EM(D0, 6, covType, psiEig=0.01, verbose=False)
+    gmm1 = gmm.train_GMM_LBG_EM(D1, 32, covType, psiEig=0.01, verbose=False)
     scores_gmm = progetto8.logpdf_GMM(DVAL, gmm1) - progetto8.logpdf_GMM(DVAL, gmm0)
     score_fusion_qlr_gmm = numpy.vstack([scores_quad_log_reg, scores_gmm])
     alpha, beta = trainWeightedLogRegBinary(score_fusion_qlr_gmm, LVAL, 0, prior_calibration_qlr_gmm)
@@ -488,7 +490,7 @@ if __name__ == '__main__':
     calibrated_scores_fusion_qlr_gmm = alpha @ SEVAL_fusion_qlr_gmm + (beta - numpy.log(prior_calibration_qlr_gmm/(1 - prior_calibration_qlr_gmm)))
     min_dcf = min_DCF(pT, 1.0, 1.0, calibrated_scores_fusion_qlr_gmm, LEVAL)
     act_dcf = DCF_normalized(pT, 1.0, 1.0, calibrated_scores_fusion_qlr_gmm, LEVAL)
-    print('Fusion QLR + GMM\tminDCF: %.4f\tactDCF: %.4f' % (min_dcf, act_dcf))
+    print('Fusion QLR + GMM (6, 32)\tminDCF: %.4f\tactDCF: %.4f' % (min_dcf, act_dcf))
     #bayes_error_plots(calibrated_scores_fusion_qlr_gmm, LEVAL, "Fusion QLR + GMM", ["g", "g"])
 
     #plt.show()
