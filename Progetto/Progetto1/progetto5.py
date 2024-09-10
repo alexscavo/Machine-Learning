@@ -157,86 +157,59 @@ if __name__ == '__main__':
     (DTR, LTR), (DVAL, LVAL) = functions.split_training_test_dataset(D, L)  # obtain training and validation data
 
 
-    # ----- MVG -----
-    parameters = functions.compute_parameters_MVG(DTR, LTR)   # compute training parameters with MVG model
-    llr = functions.compute_llr(DVAL, parameters)
-
-    # predictions:
-    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
-    #print('MVG model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
-
-    print('-'*40)
-    print('MVG classifier - prior probabilities', class_prior_prob)
-    for prior, Cfn, Cfp in [(0.5, 1.0, 1.0), (0.9, 1.0, 1.0), (0.1, 1.0, 1.0), (0.5, 1.0, 9.0), (0.5, 9.0, 1.0)]:  
-        print()
-        print('Prior:', prior, '- Cfn:', Cfn, '- Cfp:', Cfp)
-
-        predictions_binary = compute_optimal_bayes_binary_llr(llr, prior, Cfn, Cfp)   
-        conf_matrix = compute_confusion_matrix(predictions_binary, LVAL)
-        #print(conf_matrix)
-
-        #bayes_risk = compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp, normalize=False)   
-        #print('Bayes risk:', round(bayes_risk, 5))
-
-        normalized_bayes = compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp) 
-        print('Actual DCF:', round(normalized_bayes, 5)) 
-
-        DCF_min, threshold_min = compute_minDCF(llr, LVAL, prior, Cfn, Cfp, True)
-        print('DCF min:', round(DCF_min, 5), '- Threshold:', round(threshold_min, 5))
-        print('effective prior:', round(compute_effective_prior(threshold_min), 5))
-
-    # ----- TIED GAUSSIAN -----
-    parameters = functions.compute_parameters_tied(DTR, LTR)  # compute training parameters with tied Gaussian model
-    llr = functions.compute_llr(DVAL, parameters)
-    # predictions:
-    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
-
-    print('-'*40)
-    print('Tied Gaussian classifier - prior probabilities', class_prior_prob)
-    for prior, Cfn, Cfp in [(0.5, 1.0, 1.0), (0.9, 1.0, 1.0), (0.1, 1.0, 1.0), (0.5, 1.0, 9.0), (0.5, 9.0, 1.0)]:  
-        print()
-        print('Prior:', prior, '- Cfn:', Cfn, '- Cfp:', Cfp)
-
-        predictions_binary = compute_optimal_bayes_binary_llr(llr, prior, Cfn, Cfp)   
-        conf_matrix = compute_confusion_matrix(predictions_binary, LVAL)
-        #print(conf_matrix)
-
-        #bayes_risk = compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp, normalize=False)   
-        #print('Bayes risk:', round(bayes_risk, 5))
-
-        normalized_bayes = compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp) 
-        print('Actual DCF:', round(normalized_bayes, 5)) 
-
-        DCF_min, threshold_min = compute_minDCF(llr, LVAL, prior, Cfn, Cfp, True)
-        print('DCF min:', round(DCF_min, 5), '- Threshold:', round(threshold_min, 5))
-        print('effective prior:', round(compute_effective_prior(threshold_min), 5))
+    """
+    Application 1
+    """
+    prior = 0.5
+    Cfn = 1.0
+    Cfp = 1.0
+    effPrior = (prior*Cfn)/(prior*Cfn + (1-prior)*Cfp)
+    print("Prior = %f, Cfn = %f, Cfp = %f, effPrior = %f" %(prior, Cfn, Cfp, effPrior))
 
 
-    # ----- NAIVE BAYES GAUSSIAN -----
-    parameters = functions.compute_parameters_naive_bayes(DTR, LTR)
-    llr = functions.compute_llr(DVAL, parameters)
-    # predictions
-    PVAL = compute_predictions(DVAL, class_prior_prob, llr, threshold)
 
-    print('-'*40)
-    print('Naive Bayes classifier - prior probabilities', class_prior_prob)
-    for prior, Cfn, Cfp in [(0.5, 1.0, 1.0), (0.9, 1.0, 1.0), (0.1, 1.0, 1.0), (0.5, 1.0, 9.0), (0.5, 9.0, 1.0)]:  
-        print()
-        print('Prior:', prior, '- Cfn:', Cfn, '- Cfp:', Cfp)
+    """
+    Application 2
+    """
+    prior = 0.9 
+    Cfn = 1.0
+    Cfp = 1.0
+    effPrior = (prior*Cfn)/(prior*Cfn + (1-prior)*Cfp)
+    print("Prior = %f, Cfn = %f, Cfp = %f, effPrior = %f" %(prior, Cfn, Cfp, effPrior))
+    
 
-        predictions_binary = compute_optimal_bayes_binary_llr(llr, prior, Cfn, Cfp)   
-        conf_matrix = compute_confusion_matrix(predictions_binary, LVAL)
-        #print(conf_matrix)
+    """
+    Application 3
+    """
+    prior = 0.1
+    Cfn = 1.0
+    Cfp = 1.0
+    effPrior = (prior*Cfn)/(prior*Cfn + (1-prior)*Cfp)
+    print("Prior = %f, Cfn = %f, Cfp = %f, effPrior = %f" %(prior, Cfn, Cfp, effPrior))
 
-        #bayes_risk = compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp, normalize=False)   
-        #print('Bayes risk:', round(bayes_risk, 5))
 
-        normalized_bayes = compute_empirical_bayes_risk_binary(conf_matrix, prior, Cfn, Cfp) 
-        print('Actual DCF:', round(normalized_bayes, 5)) 
 
-        DCF_min, threshold_min = compute_minDCF(llr, LVAL, prior, Cfn, Cfp, True)
-        print('DCF min:', round(DCF_min, 5), '- Threshold:', round(threshold_min, 5))
-        print('effective prior:', round(compute_effective_prior(threshold_min), 5))
+
+    """
+    Application 4
+    """
+    prior = 0.5
+    Cfn = 1.0
+    Cfp = 9.0
+    effPrior = (prior*Cfn)/(prior*Cfn + (1-prior)*Cfp)
+    print("Prior = %f, Cfn = %f, Cfp = %f, effPrior = %f" %(prior, Cfn, Cfp, effPrior))
+
+
+
+
+    """
+    Application 5
+    """
+    prior = 0.5
+    Cfn = 9.0
+    Cfp = 1.0
+    effPrior = (prior*Cfn)/(prior*Cfn + (1-prior)*Cfp)
+    print("Prior = %f, Cfn = %f, Cfp = %f, effPrior = %f" %(prior, Cfn, Cfp, effPrior))
 
 
     ########################################################
