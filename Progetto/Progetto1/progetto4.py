@@ -62,7 +62,7 @@ def compute_llr(D, parameters):
 def compute_error_rate(P, L):
     return ((P != L).sum()/float(L.size))*100
 
-def compute_predictions(D, class_prior_prob, llr, threshold):
+def compute_predictions(DVAL, class_prior_prob, llr, threshold):
     PVAL = numpy.zeros(DVAL.shape[1], dtype = numpy.int32)
     class_prior_prob = [0.5, 0.5]   # class prior probabilities
 
@@ -141,7 +141,6 @@ if __name__ == '__main__':
         print()
 
 
-    # prova plot naive bayes - forse da rimuovere
     '''parameters = compute_parameters_MVG(DTR, LTR)
     DVAL0 = DVAL[:, LVAL == 0]
     DVAL1 = DVAL[:, LVAL == 1]
@@ -156,8 +155,9 @@ if __name__ == '__main__':
     #
     # ----- PROVE SENZA FEATURES 5 E 6 -----
     #
-    DTR = DTR[0:5, :]
-    DVAL = DVAL[0:5, :]
+    DTR = DTR[0:4, :]
+    DVAL = DVAL[0:4, :]
+    print(DTR.shape)
 
     # ----- MVG -----
     parameters = compute_parameters_MVG(DTR, LTR)   # compute training parameters with MVG model
@@ -289,6 +289,8 @@ if __name__ == '__main__':
         # predictions
         PVAL = compute_predictions(DVALP_pca, class_prior_prob, llr, threshold)
         print('Naive Bayes Gaussian model -  classification error rate (threshold: ',threshold, '): ', compute_error_rate(PVAL, LVAL), '%')
+
+        print()
 
 
 

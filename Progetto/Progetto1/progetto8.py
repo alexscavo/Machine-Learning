@@ -174,7 +174,7 @@ if __name__ == '__main__':
     best_min_DCF = 100
     best_parameters = []
 
-    '''# --- FULL COVARIANCE MATRIX ---
+    # --- FULL COVARIANCE MATRIX ---
     covType = 'full'
     print('-'*40)
     print(covType)
@@ -202,18 +202,18 @@ if __name__ == '__main__':
             print('actDCF - pT = 0.1:', round(DCF_act,4))
         print('---')
 
-        plt.figure()
+        '''plt.figure()
         plt.plot(components, min_DCFs, label="min DCF", color="b", marker='o')
         plt.plot(components, act_DCFs, label="actual DCF", color="r", marker='x')
         plt.xlabel("True class number of components")
         plt.ylabel("DCF value")
         plt.title("False class number of components fixed to: %d" %(int(numComponents0)))
         plt.legend()
-        plt.grid(True)
+        plt.grid(True)'''
         #plt.savefig("plots_p8/standard_gmm_false_component_%d.pdf"%(int(numComponents0))) 
-        #plt.show()'''
+        #plt.show()
 
-    '''# --- FULL COVARIANCE MATRIX ---
+    # --- DIAGONAL COVARIANCE MATRIX ---
     covType = 'diagonal'
     print('-'*40)
     print(covType)
@@ -234,7 +234,7 @@ if __name__ == '__main__':
             act_DCFs.append(DCF_act)
             print('minDCF - pT = 0.1:', round(DCF_min,4))
             print('actDCF - pT = 0.1:', round(DCF_act,4))
-        print('---')'''
+        print('---')
 
     #
     # --- MODELS COMPARISON --- 

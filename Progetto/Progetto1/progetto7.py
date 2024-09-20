@@ -1,5 +1,5 @@
-import matplotlib
-import matplotlib.pyplot
+import matplotlib 
+import matplotlib.pyplot as plt
 import numpy
 import scipy
 import scipy.optimize
@@ -86,8 +86,6 @@ def train_dual_SVM_kernel(DTR, LTR, C, kernelFunc, eps = 1.0):
     return fScore
 
 
-# per la minDCF usare progetto6.min_DCF
-
 if __name__ == '__main__':
 
     D, L = loadData.load('trainData.txt')      # get the data and labels from the dataset
@@ -136,10 +134,10 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act, 4))
         print() 
 
-    plots.plot_lab9('SVM with centered Data',min_DCFs, act_DCFs, C)'''
+    plots.plot_lab9('SVM with centered Data',min_DCFs, act_DCFs, C)
 
 
-    '''# --- POLYNOMIAL KERNEL ---
+    # --- POLYNOMIAL KERNEL ---
     print('-'*40)
     print('POLYNOMIAL KERNEL SVM')
     kernelFunc = polyKernel(2, 1)
@@ -172,10 +170,15 @@ if __name__ == '__main__':
 
     C = numpy.logspace(-3, 2, 11)
     Gamma = [numpy.exp(-4), numpy.exp(-3), numpy.exp(-2), numpy.exp(-1)]
-
+    i = 0
+    colors = ['b','g','r','c']
+    plt.figure(figsize=(10, 6))
+    
+    plt.xscale('log', base=10)
     for gamma in Gamma:
         min_DCFs = []
         act_DCFs = []
+        i += 1
         for c in C:
             kernelFunc = rbfKernel(gamma)
             fScore = train_dual_SVM_kernel(DTR, LTR, c, kernelFunc, eps)
@@ -190,9 +193,19 @@ if __name__ == '__main__':
             print('actDCF - pT = 0.1:', round(DCF_act, 4))
             print() 
 
-        title = 'RBF Kernel SVM: Gamma= %e' % gamma
+        title = 'RBF Kernel SVM'
 
-        plots.plot_lab9(title ,min_DCFs, act_DCFs, C)
+        #plots.plot_lab9(title ,min_DCFs, act_DCFs, C, 'plots_p7',i, True)
+        
+        plt.plot(C, min_DCFs, label=f"Minimum DCF Gamma = {round(gamma, 3)}", marker='o', color=colors[i-1])
+        plt.plot(C, act_DCFs, '--',label=f"Actual DCF Gamma = {round(gamma, 3)}", marker='x', color= colors[i-1])
+        
+    plt.xlabel('C (Regularization strength)')
+    plt.ylabel('DCF')
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
     '''# --- OPTIONAL ---
     print('-'*40)
@@ -215,4 +228,5 @@ if __name__ == '__main__':
         print('actDCF - pT = 0.1:', round(DCF_act, 4))
         print() 
 
-    plots.plot_lab9('Polynomial Kernel SVM with degree = 4',min_DCFs, act_DCFs, C)'''
+    plots.plot_lab9('Polynomial Kernel SVM with degree = 4',min_DCFs, act_DCFs, C)
+'''
